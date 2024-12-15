@@ -1,4 +1,4 @@
-package views
+package info
 
 import (
 	"github.com/charmbracelet/bubbles/key"
@@ -14,27 +14,27 @@ type Section struct {
 	Content string
 }
 
-// InfoVim represents the Vim Information screen
-type InfoVim struct {
+// VimInfo represents the Vim Information screen
+type VimInfo struct {
 	*ui.BaseMenu
 }
 
-// NewInfoVimView returns a new InfoVim instance
-func NewInfoVimView() ui.Menu {
+// NewVimInfo returns a new Vim Information instance
+func NewVimInfo() ui.Menu {
 	base := ui.NewBaseMenu("Vim Information", nil)
-	content := renderSections(vimInfoSections)
+	content := renderSections(vimInfoSections) + Bram
 	base.SetContent(content)
-	return &InfoVim{BaseMenu: base}
+	return &VimInfo{BaseMenu: base}
 }
 
-// Update handles messages and transitions back to the Info menu
-func (m *InfoVim) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+// Update handles messages and transitions back to the info menu
+func (m *VimInfo) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	_, cmd := m.BaseMenu.Update(msg)
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if key.Matches(msg, m.Controls().Back) {
-			return m, state.ChangeView(state.InfoView)
+			return m, state.ChangeView(state.InfoMenu)
 		}
 	}
 
@@ -42,7 +42,7 @@ func (m *InfoVim) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // HandleSelection implements ButtonHandler interface
-func (m *InfoVim) HandleSelection() tea.Cmd { return nil }
+func (m *VimInfo) HandleSelection() tea.Cmd { return nil }
 
 func renderSections(sections []Section) string {
 	var rendered string
@@ -91,4 +91,15 @@ it's Vim that's all but guaranteed to be on every other system in the world.`,
 with its commands and capabilities, it becomes a tool that adapts to your needs, making your workflow faster 
 and more seamless.`,
 	},
+	{
+		Title: "Additional information:",
+		Content: `For more information on Vim, visit the official website at https://www.vim.org/ 
+For a comprehensive guide on Vim, check out the Vim documentation at https://vimhelp.org/`,
+	},
 }
+
+const (
+	Bram = `
+Rest in peace, Bram Moolenaar, the creator of Vim, who passed away on August 3rd, 2023.
+`
+)

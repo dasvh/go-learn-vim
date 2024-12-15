@@ -16,7 +16,7 @@ type MenuManager struct {
 // NewManager returns a new MenuManager instance
 func NewManager() *MenuManager {
 	return &MenuManager{
-		activeView: MainView,
+		activeView: MainMenu,
 		views:      make(map[View]ui.Menu),
 	}
 }

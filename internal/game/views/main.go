@@ -21,8 +21,8 @@ type Main struct {
 	*ui.BaseMenu
 }
 
-// NewMainView returns a new Main instance
-func NewMainView() ui.Menu {
+// NewMainMenu returns a new Main instance
+func NewMainMenu() ui.Menu {
 	base := ui.NewBaseMenu("Main Menu", []ui.ButtonConfig{
 		{Label: ButtonInfo},
 		{Label: ButtonNew},
@@ -57,7 +57,7 @@ func (m *Main) HandleSelection() tea.Cmd {
 
 	switch selected.Label {
 	case ButtonInfo:
-		return state.ChangeView(state.InfoView)
+		return state.ChangeView(state.InfoMenu)
 	case ButtonQuit:
 		return tea.Quit
 	default:

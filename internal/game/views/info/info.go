@@ -1,4 +1,4 @@
-package views
+package info
 
 import (
 	"github.com/charmbracelet/bubbles/key"
@@ -13,23 +13,23 @@ const (
 	ButtonCheatsheet = "Cheatsheet"
 )
 
-// Info represents the information menu view
-type Info struct {
+// Menu represents the information menu view
+type Menu struct {
 	*ui.BaseMenu
 }
 
-// NewInfoView returns a new Info instance
-func NewInfoView() ui.Menu {
+// NewInfoMenu returns a new Menu instance
+func NewInfoMenu() ui.Menu {
 	base := ui.NewBaseMenu("Info Menu", []ui.ButtonConfig{
 		{Label: ButtonVim},
 		{Label: ButtonMotions},
 		{Label: ButtonCheatsheet, Inactive: true},
 	})
-	return &Info{BaseMenu: base}
+	return &Menu{BaseMenu: base}
 }
 
 // Update handles messages and transitions between menu states
-func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	_, cmd := m.BaseMenu.Update(msg)
 
 	switch msg := msg.(type) {
@@ -38,7 +38,7 @@ func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.HandleSelection()
 		}
 		if key.Matches(msg, m.Controls().Back) {
-			return m, state.ChangeView(state.MainView)
+			return m, state.ChangeView(state.MainMenu)
 		}
 	}
 
@@ -46,7 +46,7 @@ func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // HandleSelection implements ButtonHandler interface
-func (m *Info) HandleSelection() tea.Cmd {
+func (m *Menu) HandleSelection() tea.Cmd {
 	selected := m.CurrentButton()
 	if selected == nil || selected.Inactive {
 		return nil
@@ -54,7 +54,7 @@ func (m *Info) HandleSelection() tea.Cmd {
 
 	switch selected.Label {
 	case ButtonVim:
-		return state.ChangeView(state.InfoVimView)
+		return state.ChangeView(state.InfoVim)
 	case ButtonMotions:
 		return tea.Println("Motions")
 	default:

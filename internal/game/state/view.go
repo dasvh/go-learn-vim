@@ -6,14 +6,18 @@ import tea "github.com/charmbracelet/bubbletea"
 type View uint8
 
 const (
-	// MainView represents the main menu view
-	MainView View = iota
-	// InfoView represents the information menu view
-	InfoView
-	// InfoVimView represents the vim information view
-	InfoVimView
-	// GameView represents the game menu view
-	GameView
+	// MainMenu represents the main menu view
+	MainMenu View = iota
+	// InfoMenu represents the information menu view
+	InfoMenu
+	// InfoVim represents the vim information view
+	InfoVim
+	// InfoMotions represents the motions information view
+	InfoMotions
+	// InfoCheatsheet represents the cheatsheet information view
+	InfoCheatsheet
+	// GameMenu represents the game menu view
+	GameMenu
 )
 
 // ChangeView returns a command to change the current view to the specified view

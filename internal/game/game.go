@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/dasvh/go-learn-vim/internal/game/state"
 	"github.com/dasvh/go-learn-vim/internal/game/views"
+	"github.com/dasvh/go-learn-vim/internal/game/views/info"
 )
 
 // Game represents the main game structure which holds the state manager
@@ -18,9 +19,9 @@ type Game struct {
 func NewGame() *Game {
 	manager := state.NewManager()
 
-	manager.Register(state.MainView, views.NewMainView())
-	manager.Register(state.InfoView, views.NewInfoView())
-	manager.Register(state.InfoVimView, views.NewInfoVimView())
+	manager.Register(state.MainMenu, views.NewMainMenu())
+	manager.Register(state.InfoMenu, info.NewInfoMenu())
+	manager.Register(state.InfoVim, info.NewVimInfo())
 
 	return &Game{
 		manager: manager,
