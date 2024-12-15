@@ -28,6 +28,7 @@ type BaseMenu struct {
 	help     help.Model
 	buttons  *buttons.Buttons
 	title    string
+	content  string
 }
 
 // NewBaseMenu returns a new BaseMenu instance
@@ -88,11 +89,17 @@ func (m *BaseMenu) View() string {
 		DefaultSubtitleStyle.Align(lipgloss.Center).Render(m.title),
 	}
 
-	// Add buttons and help view
-	views = append(views,
-		m.buttons.View()+"\n",
-		m.help.ShortHelpView(m.controls.Info()),
-	)
+	if m.content != "" {
+		views = append(views,
+			m.content,
+			m.help.ShortHelpView(m.controls.ContentHelp()),
+		)
+	} else {
+		views = append(views,
+			m.buttons.View()+"\n",
+			m.help.ShortHelpView(m.controls.NavigationHelp()),
+		)
+	}
 	return lipgloss.Place(m.size.Width, m.size.Height, lipgloss.Center, lipgloss.Center,
 		lipgloss.JoinVertical(lipgloss.Center, views...))
 }
@@ -105,4 +112,8 @@ func (m *BaseMenu) Controls() Controls {
 // CurrentButton returns the currently selected button
 func (m *BaseMenu) CurrentButton() *buttons.Button {
 	return m.buttons.CurrentButton()
+}
+
+func (m *BaseMenu) SetContent(content string) {
+	m.content = content
 }

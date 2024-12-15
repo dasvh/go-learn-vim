@@ -20,6 +20,7 @@ func NewGame() *Game {
 
 	manager.Register(state.MainView, views.NewMainView())
 	manager.Register(state.InfoView, views.NewInfoView())
+	manager.Register(state.InfoVimView, views.NewInfoVimView())
 
 	return &Game{
 		manager: manager,

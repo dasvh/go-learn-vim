@@ -10,6 +10,8 @@ const (
 	MainView View = iota
 	// InfoView represents the information menu view
 	InfoView
+	// InfoVimView represents the vim information view
+	InfoVimView
 	// GameView represents the game menu view
 	GameView
 )

@@ -35,7 +35,6 @@ func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if key.Matches(msg, m.Controls().Select) {
-			//return m, m.handleSelection()
 			return m, m.HandleSelection()
 		}
 		if key.Matches(msg, m.Controls().Back) {
@@ -55,7 +54,7 @@ func (m *Info) HandleSelection() tea.Cmd {
 
 	switch selected.Label {
 	case ButtonVim:
-		return tea.Println("Vim")
+		return state.ChangeView(state.InfoVimView)
 	case ButtonMotions:
 		return tea.Println("Motions")
 	default:

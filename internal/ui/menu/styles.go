@@ -14,4 +14,7 @@ var (
 				MarginBottom(2).
 				Bold(true).
 				Blink(true)
+	ContentTitleStyle   = lipgloss.NewStyle().Bold(true).Underline(true).Foreground(lipgloss.Color("33"))
+	ContentBodyStyle    = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("231"))
+	ContentSectionStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Padding(1).Margin(1).BorderForeground(lipgloss.Color("69"))
 )
