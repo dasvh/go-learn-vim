@@ -5,13 +5,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Button represents a button with a label and an inactive state
+// Button represents a component with a label
 type Button struct {
 	Label    string
 	Inactive bool
 }
 
-// Buttons represents a collection of buttons with styles and current selection
+// Buttons represents a collection of interactive buttons that can be navigated through
 type Buttons struct {
 	items  []*Button
 	cursor int
@@ -19,13 +19,13 @@ type Buttons struct {
 	styles buttonStyles
 }
 
-// buttonStyles holds the buttonStyles for active and inactive buttons
+// buttonStyles defines the visual styles for buttons in different states
 type buttonStyles struct {
 	Selected lipgloss.Style
 	Default  lipgloss.Style
 }
 
-// New creates a new Buttons instance with the given labels
+// New creates a new Buttons component with the provided labels
 func New(labels ...string) *Buttons {
 	buttons := make([]*Button, 0, len(labels))
 	for _, label := range labels {
@@ -61,12 +61,12 @@ func New(labels ...string) *Buttons {
 	}
 }
 
-// Init initializes the Buttons model
+// Init initializes the Buttons component
 func (b *Buttons) Init() tea.Cmd {
 	return nil
 }
 
-// Update handles the update messages for the Buttons model
+// Update handles the state updates for the Buttons component
 func (b *Buttons) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case Move:
@@ -80,7 +80,7 @@ func (b *Buttons) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return b, nil
 }
 
-// View renders the buttons
+// View renders the button list component, displaying active buttons vertically
 func (b *Buttons) View() string {
 	var views []string
 	for i, item := range b.items {
@@ -96,12 +96,12 @@ func (b *Buttons) View() string {
 	return lipgloss.JoinVertical(b.layout, views...)
 }
 
-// Items returns the buttons in the collection
+// Items returns a slice of all buttons stored in the Buttons component
 func (b *Buttons) Items() []*Button {
 	return b.items
 }
 
-// CurrentButton returns the currently selected button
+// CurrentButton returns the currently selected Button based on the cursor position
 func (b *Buttons) CurrentButton() *Button {
 	if b.cursor < 0 || b.cursor >= len(b.items) {
 		return nil
@@ -109,7 +109,7 @@ func (b *Buttons) CurrentButton() *Button {
 	return b.items[b.cursor]
 }
 
-// MoveUp moves the selection up, skipping inactive buttons
+// MoveUp moves the cursor one position up in the buttons list
 func (b *Buttons) MoveUp() {
 	if b.cursor > 0 {
 		b.cursor--
@@ -119,7 +119,7 @@ func (b *Buttons) MoveUp() {
 	}
 }
 
-// MoveDown moves the selection down, skipping inactive buttons
+// MoveDown moves the cursor to the next active button in the list
 func (b *Buttons) MoveDown() {
 	lastActive := b.lastActiveIndex()
 	if b.cursor < lastActive {
@@ -130,7 +130,8 @@ func (b *Buttons) MoveDown() {
 	}
 }
 
-// lastActiveIndex returns the index of the last active button in the list
+// lastActiveIndex iterates through the button items in reverse order and returns
+// the index of the last active button
 func (b *Buttons) lastActiveIndex() int {
 	for i := len(b.items) - 1; i >= 0; i-- {
 		if !b.items[i].Inactive {
@@ -146,7 +147,7 @@ var (
 	foregroundColor = lipgloss.CompleteColor{TrueColor: "#00000F"}
 )
 
-// Move represents a movement direction for button selection
+// Move represents a directional movement command
 type Move uint8
 
 const (

@@ -1,8 +1,9 @@
-package menu
+package view
 
 import "github.com/charmbracelet/bubbles/key"
 
-// Controls holds the controls for menu navigation
+// Controls represents a set of key bindings for navigating and interacting
+// with a user interface
 type Controls struct {
 	Up     key.Binding
 	Down   key.Binding
@@ -11,7 +12,7 @@ type Controls struct {
 	Quit   key.Binding
 }
 
-// NewControls creates and returns a new Controls instance with default controls
+// NewControls creates a new Controls instance with predefined key bindings
 func NewControls() Controls {
 	return Controls{
 		Up: key.NewBinding(
