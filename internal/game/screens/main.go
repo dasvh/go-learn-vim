@@ -1,10 +1,10 @@
-package views
+package screens
 
 import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/dasvh/go-learn-vim/internal/components/view"
 	"github.com/dasvh/go-learn-vim/internal/game/state"
-	ui "github.com/dasvh/go-learn-vim/internal/ui/menu"
 )
 
 const (
@@ -18,12 +18,12 @@ const (
 
 // Main represents the main menu view
 type Main struct {
-	*ui.BaseMenu
+	*view.MenuView
 }
 
 // NewMainMenu returns a new Main instance
-func NewMainMenu() ui.Menu {
-	base := ui.NewBaseMenu("Main Menu", []ui.ButtonConfig{
+func NewMainMenu() view.Menu {
+	base := view.NewBaseMenu("Main Menu", []view.ButtonConfig{
 		{Label: ButtonInfo},
 		{Label: ButtonNew},
 		{Label: ButtonLoad, Inactive: true},
@@ -31,12 +31,12 @@ func NewMainMenu() ui.Menu {
 		{Label: ButtonStats},
 		{Label: ButtonQuit},
 	})
-	return &Main{BaseMenu: base}
+	return &Main{MenuView: base}
 }
 
 // Update handles messages and transitions between menu states
 func (m *Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	_, cmd := m.BaseMenu.Update(msg)
+	_, cmd := m.MenuView.Update(msg)
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -57,7 +57,7 @@ func (m *Main) HandleSelection() tea.Cmd {
 
 	switch selected.Label {
 	case ButtonInfo:
-		return state.ChangeView(state.InfoMenu)
+		return state.ChangeScreen(state.InfoMenuScreen)
 	case ButtonQuit:
 		return tea.Quit
 	default:

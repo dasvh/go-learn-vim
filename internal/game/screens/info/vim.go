@@ -4,56 +4,53 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/dasvh/go-learn-vim/internal/components/view"
 	"github.com/dasvh/go-learn-vim/internal/game/state"
-	ui "github.com/dasvh/go-learn-vim/internal/ui/menu"
 )
 
-// Section represents a section in the Vim Information screen
+// VimInfo represents the Vim Information view
+type VimInfo struct {
+	*view.ContentView
+}
+
+// Section represents a section in the Vim Information view
 type Section struct {
 	Title   string
 	Content string
 }
 
-// VimInfo represents the Vim Information screen
-type VimInfo struct {
-	*ui.BaseMenu
-}
-
-// NewVimInfo returns a new Vim Information instance
-func NewVimInfo() ui.Menu {
-	base := ui.NewBaseMenu("Vim Information", nil)
+// NewVimInfo creates and returns a new VimInfo instance with initialized display view
+func NewVimInfo() *VimInfo {
+	display := view.NewDisplayView("Vim Information")
 	content := renderSections(vimInfoSections) + Bram
-	base.SetContent(content)
-	return &VimInfo{BaseMenu: base}
+	display.SetContent(content)
+	return &VimInfo{ContentView: display}
 }
 
-// Update handles messages and transitions back to the info menu
+// Update handles updates to the VimInfo screen model based on incoming messages
 func (m *VimInfo) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	_, cmd := m.BaseMenu.Update(msg)
+	_, cmd := m.ContentView.Update(msg)
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if key.Matches(msg, m.Controls().Back) {
-			return m, state.ChangeView(state.InfoMenu)
+			return m, state.ChangeScreen(state.InfoMenuScreen)
 		}
 	}
 
 	return m, cmd
 }
 
-// HandleSelection implements ButtonHandler interface
-func (m *VimInfo) HandleSelection() tea.Cmd { return nil }
-
+// renderSections takes a slice of Section structs and returns a formatted string representation
 func renderSections(sections []Section) string {
 	var rendered string
 	for _, section := range sections {
 		rendered += lipgloss.JoinVertical(0,
-			ui.ContentTitleStyle.Render(section.Title),
-			ui.ContentBodyStyle.Render(section.Content),
-		)
-		rendered += "\n\n"
+			view.Styles.Display.Title.Render(section.Title),
+			view.Styles.Display.Text.Render(section.Content),
+		) + "\n\n"
 	}
-	return ui.ContentSectionStyle.Render(rendered)
+	return view.Styles.Display.Section.Render(rendered)
 }
 
 var vimInfoSections = []Section{
@@ -72,7 +69,7 @@ it's Vim that's all but guaranteed to be on every other system in the world.`,
 	},
 	{
 		Title: "Key Features:",
-		Content: `- **Modal Editing**: Switch between modes for navigating, editing, and selecting text.
+		Content: `- **Modal Editing**: SwitchTo between modes for navigating, editing, and selecting text.
 - **Customizability**: Personalize Vim with plugins, keybindings, and themes to suit your workflow.
 - **Performance**: Designed to work in any environment, from a lightweight terminal to powerful plugins.
 - **Availability**: Pre-installed on most Unix-based systems, making it accessible almost anywhere.`,

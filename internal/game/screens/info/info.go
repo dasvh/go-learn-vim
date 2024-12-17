@@ -3,8 +3,8 @@ package info
 import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/dasvh/go-learn-vim/internal/components/view"
 	"github.com/dasvh/go-learn-vim/internal/game/state"
-	ui "github.com/dasvh/go-learn-vim/internal/ui/menu"
 )
 
 const (
@@ -13,24 +13,24 @@ const (
 	ButtonCheatsheet = "Cheatsheet"
 )
 
-// Menu represents the information menu view
-type Menu struct {
-	*ui.BaseMenu
+// Info represents the information screen of the game
+type Info struct {
+	*view.MenuView
 }
 
-// NewInfoMenu returns a new Menu instance
-func NewInfoMenu() ui.Menu {
-	base := ui.NewBaseMenu("Info Menu", []ui.ButtonConfig{
+// NewInfoMenu creates a new info menu with predefined buttons for Vim navigation
+func NewInfoMenu() view.Menu {
+	info := view.NewBaseMenu("Info Menu", []view.ButtonConfig{
 		{Label: ButtonVim},
 		{Label: ButtonMotions},
 		{Label: ButtonCheatsheet, Inactive: true},
 	})
-	return &Menu{BaseMenu: base}
+	return &Info{MenuView: info}
 }
 
-// Update handles messages and transitions between menu states
-func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	_, cmd := m.BaseMenu.Update(msg)
+// Update handles input messages and updates the info screen state accordingly
+func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	_, cmd := m.MenuView.Update(msg)
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -38,7 +38,7 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.HandleSelection()
 		}
 		if key.Matches(msg, m.Controls().Back) {
-			return m, state.ChangeView(state.MainMenu)
+			return m, state.ChangeScreen(state.MainMenuScreen)
 		}
 	}
 
@@ -46,7 +46,7 @@ func (m *Menu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // HandleSelection implements ButtonHandler interface
-func (m *Menu) HandleSelection() tea.Cmd {
+func (m *Info) HandleSelection() tea.Cmd {
 	selected := m.CurrentButton()
 	if selected == nil || selected.Inactive {
 		return nil
@@ -54,9 +54,9 @@ func (m *Menu) HandleSelection() tea.Cmd {
 
 	switch selected.Label {
 	case ButtonVim:
-		return state.ChangeView(state.InfoVim)
+		return state.ChangeScreen(state.VimInfoScreen)
 	case ButtonMotions:
-		return tea.Println("Motions")
+		return state.ChangeScreen(state.MotionsInfoScreen)
 	default:
 		return nil
 	}
