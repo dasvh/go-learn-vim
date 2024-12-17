@@ -2,56 +2,53 @@ package state
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	ui "github.com/dasvh/go-learn-vim/internal/ui/menu"
+	ui "github.com/dasvh/go-learn-vim/internal/components/view"
 )
 
-// MenuManager manages the game views
-type MenuManager struct {
-	// activeView represents the current active view
-	activeView View
-	// views represents the registered views
-	views map[View]ui.Menu
+// ViewManager handles the management and switching of game views/screens
+type ViewManager struct {
+	activeView GameScreen
+	views      map[GameScreen]ui.View
 }
 
-// NewManager returns a new MenuManager instance
-func NewManager() *MenuManager {
-	return &MenuManager{
-		activeView: MainMenu,
-		views:      make(map[View]ui.Menu),
+// NewManager creates and returns a new ViewManager instance with MainMenuScreen as the default active view
+func NewManager() *ViewManager {
+	return &ViewManager{
+		activeView: MainMenuScreen,
+		views:      make(map[GameScreen]ui.View),
 	}
 }
 
-// Register registers a view with its corresponding model
-// with `view` as the key and `model` as the value
-func (m *MenuManager) Register(view View, model tea.Model) {
-	if menu, ok := model.(ui.Menu); ok {
-		m.views[view] = menu
+// Register adds a new view to the ViewManager
+func (vm *ViewManager) Register(view GameScreen, model tea.Model) {
+	if v, ok := model.(ui.View); ok {
+		vm.views[view] = v
 	}
 }
 
-// Current returns the current active model
-func (m *MenuManager) Current() tea.Model {
-	return m.views[m.activeView]
+// CurrentView returns the currently active view model from the ViewManager
+func (vm *ViewManager) CurrentView() tea.Model {
+	return vm.views[vm.activeView]
 }
 
-// Switch switches the active view to the specified view
-func (m *MenuManager) Switch(to View) tea.Cmd {
-	if model, exists := m.views[to]; exists {
-		m.activeView = to
+// SwitchTo changes the active view to the specified GameScreen if it exists
+func (vm *ViewManager) SwitchTo(to GameScreen) tea.Cmd {
+	if model, exists := vm.views[to]; exists {
+		vm.activeView = to
 		return model.Init()
 	}
 	return nil
 }
 
-// ActiveView returns the current active view
-func (m *MenuManager) ActiveView() View {
-	return m.activeView
+// ActiveView returns the currently active game screen view
+func (vm *ViewManager) ActiveView() GameScreen {
+	return vm.activeView
 }
 
-// Views returns a map of all registered views
-func (m *MenuManager) Views() map[View]tea.Model {
-	views := make(map[View]tea.Model)
-	for k, v := range m.views {
+// Views returns a map containing all registered views
+func (vm *ViewManager) Views() map[GameScreen]tea.Model {
+	views := make(map[GameScreen]tea.Model)
+	for k, v := range vm.views {
 		views[k] = v
 	}
 	return views
