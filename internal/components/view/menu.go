@@ -56,51 +56,51 @@ func NewBaseMenu(subtitle string, buttonConfigs []ButtonConfig) *MenuView {
 }
 
 // Init initializes the MenuView
-func (m *MenuView) Init() tea.Cmd {
+func (mv *MenuView) Init() tea.Cmd {
 	return nil
 }
 
 // Update handles messages and updates the MenuView accordingly
-func (m *MenuView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (mv *MenuView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.size = msg
+		mv.size = msg
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.controls.Up):
-			m.buttons.Update(buttons.MoveUp)
-		case key.Matches(msg, m.controls.Down):
-			m.buttons.Update(buttons.MoveDown)
-		case key.Matches(msg, m.controls.Select):
+		case key.Matches(msg, mv.controls.Up):
+			mv.buttons.Update(buttons.MoveUp)
+		case key.Matches(msg, mv.controls.Down):
+			mv.buttons.Update(buttons.MoveDown)
+		case key.Matches(msg, mv.controls.Select):
 			// Leave `Select` handling to derived menus
-			return m, nil
-		case key.Matches(msg, m.controls.Back):
+			return mv, nil
+		case key.Matches(msg, mv.controls.Back):
 			// Leave `Back` handling to derived menus
-			return m, nil
-		case key.Matches(msg, m.controls.Quit):
-			return m, tea.Quit
+			return mv, nil
+		case key.Matches(msg, mv.controls.Quit):
+			return mv, tea.Quit
 		}
 	}
-	return m, nil
+	return mv, nil
 }
 
 // View renders the MenuView
-func (m *MenuView) View() string {
+func (mv *MenuView) View() string {
 	views := []string{
-		m.mainTitle,
-		m.subtitle,
+		mv.mainTitle,
+		mv.subtitle,
 	}
 
 	views = append(views,
-		m.buttons.View()+"\n",
-		m.help.ShortHelpView(m.controls.NavigationHelp()),
+		mv.buttons.View()+"\n",
+		mv.help.ShortHelpView(mv.controls.NavigationHelp()),
 	)
 
-	return lipgloss.Place(m.size.Width, m.size.Height, lipgloss.Center, lipgloss.Center,
+	return lipgloss.Place(mv.size.Width, mv.size.Height, lipgloss.Center, lipgloss.Center,
 		lipgloss.JoinVertical(lipgloss.Center, views...))
 }
 
 // CurrentButton returns the currently selected button
-func (m *MenuView) CurrentButton() *buttons.Button {
-	return m.buttons.CurrentButton()
+func (mv *MenuView) CurrentButton() *buttons.Button {
+	return mv.buttons.CurrentButton()
 }

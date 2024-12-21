@@ -28,36 +28,36 @@ func NewDisplayView(title string) *ContentView {
 }
 
 // Init initializes the ContentView
-func (d *ContentView) Init() tea.Cmd { return nil }
+func (cv *ContentView) Init() tea.Cmd { return nil }
 
 // Update handles messages and updates the ContentView accordingly
-func (d *ContentView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (cv *ContentView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		d.size = msg
+		cv.size = msg
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, d.controls.Quit):
-			return d, tea.Quit
+		case key.Matches(msg, cv.controls.Quit):
+			return cv, tea.Quit
 		}
 	}
-	return d, nil
+	return cv, nil
 }
 
 // View renders the ContentView
-func (d *ContentView) View() string {
+func (cv *ContentView) View() string {
 	views := []string{
-		d.mainTitle,
-		d.subtitle,
-		d.content,
-		d.help.ShortHelpView(d.controls.ContentHelp()),
+		cv.mainTitle,
+		cv.subtitle,
+		cv.content,
+		cv.help.ShortHelpView(cv.controls.ContentHelp()),
 	}
 
-	return lipgloss.Place(d.size.Width, d.size.Height, lipgloss.Center, lipgloss.Center,
+	return lipgloss.Place(cv.size.Width, cv.size.Height, lipgloss.Center, lipgloss.Center,
 		lipgloss.JoinVertical(lipgloss.Center, views...))
 }
 
 // SetContent sets the content of the ContentView
-func (d *ContentView) SetContent(content string) {
-	d.content = content
+func (cv *ContentView) SetContent(content string) {
+	cv.content = content
 }

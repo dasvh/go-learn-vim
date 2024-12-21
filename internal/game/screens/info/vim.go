@@ -28,17 +28,17 @@ func NewVimInfo() *VimInfo {
 }
 
 // Update handles updates to the VimInfo screen model based on incoming messages
-func (m *VimInfo) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	_, cmd := m.ContentView.Update(msg)
+func (vi *VimInfo) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	_, cmd := vi.ContentView.Update(msg)
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if key.Matches(msg, m.Controls().Back) {
-			return m, state.ChangeScreen(state.InfoMenuScreen)
+		if key.Matches(msg, vi.Controls().Back) {
+			return vi, state.ChangeScreen(state.InfoMenuScreen)
 		}
 	}
 
-	return m, cmd
+	return vi, cmd
 }
 
 // renderSections takes a slice of Section structs and returns a formatted string representation

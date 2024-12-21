@@ -29,25 +29,25 @@ func NewInfoMenu() view.Menu {
 }
 
 // Update handles input messages and updates the info screen state accordingly
-func (m *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	_, cmd := m.MenuView.Update(msg)
+func (i *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	_, cmd := i.MenuView.Update(msg)
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if key.Matches(msg, m.Controls().Select) {
-			return m, m.HandleSelection()
+		if key.Matches(msg, i.Controls().Select) {
+			return i, i.HandleSelection()
 		}
-		if key.Matches(msg, m.Controls().Back) {
-			return m, state.ChangeScreen(state.MainMenuScreen)
+		if key.Matches(msg, i.Controls().Back) {
+			return i, state.ChangeScreen(state.MainMenuScreen)
 		}
 	}
 
-	return m, cmd
+	return i, cmd
 }
 
 // HandleSelection implements ButtonHandler interface
-func (m *Info) HandleSelection() tea.Cmd {
-	selected := m.CurrentButton()
+func (i *Info) HandleSelection() tea.Cmd {
+	selected := i.CurrentButton()
 	if selected == nil || selected.Inactive {
 		return nil
 	}
@@ -57,6 +57,8 @@ func (m *Info) HandleSelection() tea.Cmd {
 		return state.ChangeScreen(state.VimInfoScreen)
 	case ButtonMotions:
 		return state.ChangeScreen(state.MotionsInfoScreen)
+	case ButtonCheatsheet:
+		return state.ChangeScreen(state.CheatsheetInfoScreen)
 	default:
 		return nil
 	}

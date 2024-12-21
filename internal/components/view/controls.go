@@ -34,20 +34,20 @@ func NewControls() Controls {
 }
 
 // NavigationHelp returns a slice of key bindings for displaying control information
-func (k Controls) NavigationHelp() []key.Binding {
+func (c Controls) NavigationHelp() []key.Binding {
 	return []key.Binding{
-		k.Up,
-		k.Down,
-		k.Select,
-		k.Back,
-		k.Quit,
+		c.Up,
+		c.Down,
+		c.Select,
+		c.Back,
+		c.Quit,
 	}
 }
 
 // ContentHelp returns a slice of key bindings for displaying control information
-func (k Controls) ContentHelp() []key.Binding {
+func (c Controls) ContentHelp() []key.Binding {
 	return []key.Binding{
-		k.Back,
-		k.Quit,
+		c.Back,
+		c.Quit,
 	}
 }

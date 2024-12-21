@@ -50,6 +50,6 @@ func NewBaseView(title string) *BaseView {
 }
 
 // Controls returns the Controls associated with the BaseView
-func (b *BaseView) Controls() Controls {
-	return b.controls
+func (bv *BaseView) Controls() Controls {
+	return bv.controls
 }
