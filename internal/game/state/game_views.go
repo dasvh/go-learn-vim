@@ -16,8 +16,10 @@ const (
 	MotionsInfoScreen
 	// CheatsheetInfoScreen represents the cheatsheet information view
 	CheatsheetInfoScreen
-	// GameMenuScreen represents the game menu view
-	GameMenuScreen
+	// NewGameScreen represents the new game view
+	NewGameScreen
+	// AdventureModeScreen represents the adventure game mode view
+	AdventureModeScreen
 )
 
 // ChangeScreen returns a command to change the current view to the specified view
