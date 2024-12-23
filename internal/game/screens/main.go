@@ -27,8 +27,8 @@ func NewMainMenu() view.Menu {
 		{Label: ButtonInfo},
 		{Label: ButtonNew},
 		{Label: ButtonLoad, Inactive: true},
-		{Label: ButtonScores},
-		{Label: ButtonStats},
+		{Label: ButtonScores, Inactive: true},
+		{Label: ButtonStats, Inactive: true},
 		{Label: ButtonQuit},
 	})
 	return &Main{MenuView: base}
@@ -58,6 +58,8 @@ func (m *Main) HandleSelection() tea.Cmd {
 	switch selected.Label {
 	case ButtonInfo:
 		return state.ChangeScreen(state.InfoMenuScreen)
+	case ButtonNew:
+		return state.ChangeScreen(state.NewGameScreen)
 	case ButtonQuit:
 		return tea.Quit
 	default:
