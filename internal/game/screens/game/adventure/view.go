@@ -2,6 +2,7 @@ package adventure
 
 import (
 	"fmt"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dasvh/go-learn-vim/internal/components/view"
@@ -19,13 +20,17 @@ type Character struct {
 
 // GameView contains the components to render the game view
 type GameView struct {
-	Field           [][]rune
-	Border          lipgloss.Style
-	Background      lipgloss.Style
-	Player          lipgloss.Style
-	PlayerCharacter Character
-	Trail           lipgloss.Style
-	TrailCharacter  Character
+	Field                  [][]rune
+	Border                 lipgloss.Style
+	Background             lipgloss.Style
+	Player                 lipgloss.Style
+	PlayerCharacter        Character
+	Trail                  lipgloss.Style
+	TrailCharacter         Character
+	Target                 lipgloss.Style
+	TargetCharacter        Character
+	TargetReached          lipgloss.Style
+	TargetReachedCharacter Character
 }
 
 // InitializeComponents initializes the components for the game view
@@ -51,13 +56,17 @@ func InitializeComponents() (view.LevelInfo, view.GameModeInfo, view.GameStats, 
 	instructions.SetInstructions("Use the hjkl keys to move the player")
 
 	gameView := GameView{
-		Field:           [][]rune{},
-		Border:          view.Styles.Adventure.Map.Border,
-		Background:      view.Styles.Adventure.Map.Background,
-		Player:          view.Styles.Adventure.Map.Player,
-		PlayerCharacter: Character{'$', "$"},
-		Trail:           view.Styles.Adventure.Map.Trail,
-		TrailCharacter:  Character{'·', "·"},
+		Field:                  [][]rune{},
+		Border:                 view.Styles.Adventure.Map.Border,
+		Background:             view.Styles.Adventure.Map.Background,
+		Player:                 view.Styles.Adventure.Map.Player,
+		PlayerCharacter:        Character{'$', "$"},
+		Trail:                  view.Styles.Adventure.Map.Trail,
+		TrailCharacter:         Character{'·', "·"},
+		Target:                 view.Styles.Adventure.Map.Target,
+		TargetCharacter:        Character{'X', "X"},
+		TargetReached:          view.Styles.Adventure.Map.TargetReached,
+		TargetReachedCharacter: Character{'✓', "✓"},
 	}
 
 	return levelInfo, currentMode, stats, instructions, gameView
@@ -77,6 +86,10 @@ func renderGameView(gameView GameView, totalWidth int, bordersSpace int) string 
 				cell = gameView.Player.Render(gameView.PlayerCharacter.string)
 			case gameView.TrailCharacter.rune:
 				cell = gameView.Trail.Render(gameView.TrailCharacter.string)
+			case gameView.TargetCharacter.rune:
+				cell = gameView.Target.Render(gameView.TargetCharacter.string)
+			case gameView.TargetReachedCharacter.rune:
+				cell = gameView.TargetReached.Render(gameView.TargetReachedCharacter.string)
 			default:
 				cell = gameView.Background.Render(" ")
 			}

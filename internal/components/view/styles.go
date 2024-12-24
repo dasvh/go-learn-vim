@@ -38,25 +38,33 @@ var theme = struct {
 }
 
 var adventureTheme = struct {
-	HeaderBg       lipgloss.Color
-	FieldBg        lipgloss.Color
-	HeaderBorderBg lipgloss.Color
-	HeaderBorderFg lipgloss.Color
-	FieldBorderBg  lipgloss.Color
-	FieldBorderFg  lipgloss.Color
-	PlayerFg       lipgloss.Color
-	PlayerBg       lipgloss.Color
-	TrailFg        lipgloss.Color
+	HeaderBg        lipgloss.Color
+	FieldBg         lipgloss.Color
+	HeaderBorderBg  lipgloss.Color
+	HeaderBorderFg  lipgloss.Color
+	FieldBorderBg   lipgloss.Color
+	FieldBorderFg   lipgloss.Color
+	PlayerFg        lipgloss.Color
+	PlayerBg        lipgloss.Color
+	TrailFg         lipgloss.Color
+	TargetFg        lipgloss.Color
+	TargetBg        lipgloss.Color
+	TargetReachedFg lipgloss.Color
+	TargetReachedBg lipgloss.Color
 }{
-	HeaderBg:       colours.DarkBlue,
-	FieldBg:        colours.DarkBlue,
-	HeaderBorderBg: colours.DarkBlue,
-	HeaderBorderFg: colours.GoBlue,
-	FieldBorderBg:  colours.GoBlue,
-	FieldBorderFg:  colours.DarkBlue,
-	PlayerFg:       VeryPink,
-	PlayerBg:       colours.Grey,
-	TrailFg:        colours.White,
+	HeaderBg:        colours.DarkBlue,
+	FieldBg:         colours.DarkBlue,
+	HeaderBorderBg:  colours.DarkBlue,
+	HeaderBorderFg:  colours.GoBlue,
+	FieldBorderBg:   colours.GoBlue,
+	FieldBorderFg:   colours.DarkBlue,
+	PlayerFg:        VeryPink,
+	PlayerBg:        colours.Grey,
+	TrailFg:         colours.White,
+	TargetFg:        colours.Pink,
+	TargetBg:        colours.White,
+	TargetReachedFg: colours.DarkBlue,
+	TargetReachedBg: colours.Pink,
 }
 
 // Styles defines the styling configuration for view components
@@ -79,10 +87,12 @@ var Styles = struct {
 			Style lipgloss.Style
 		}
 		Map struct {
-			Border     lipgloss.Style
-			Background lipgloss.Style
-			Player     lipgloss.Style
-			Trail      lipgloss.Style
+			Border        lipgloss.Style
+			Background    lipgloss.Style
+			Player        lipgloss.Style
+			Trail         lipgloss.Style
+			Target        lipgloss.Style
+			TargetReached lipgloss.Style
 		}
 	}
 }{
@@ -128,10 +138,12 @@ var Styles = struct {
 			Style lipgloss.Style
 		}
 		Map struct {
-			Border     lipgloss.Style
-			Background lipgloss.Style
-			Player     lipgloss.Style
-			Trail      lipgloss.Style
+			Border        lipgloss.Style
+			Background    lipgloss.Style
+			Player        lipgloss.Style
+			Trail         lipgloss.Style
+			Target        lipgloss.Style
+			TargetReached lipgloss.Style
 		}
 	}{
 		Header: struct {
@@ -165,10 +177,12 @@ var Styles = struct {
 				Bold(true),
 		},
 		Map: struct {
-			Border     lipgloss.Style
-			Background lipgloss.Style
-			Player     lipgloss.Style
-			Trail      lipgloss.Style
+			Border        lipgloss.Style
+			Background    lipgloss.Style
+			Player        lipgloss.Style
+			Trail         lipgloss.Style
+			Target        lipgloss.Style
+			TargetReached lipgloss.Style
 		}{
 			Border: lipgloss.NewStyle().
 				BorderStyle(lipgloss.RoundedBorder()).
@@ -179,11 +193,21 @@ var Styles = struct {
 			Player: lipgloss.NewStyle().
 				Foreground(adventureTheme.PlayerFg).
 				Background(adventureTheme.PlayerBg).
-				Bold(true),
+				Bold(true).
+				Blink(true),
 			Trail: lipgloss.NewStyle().
 				Foreground(adventureTheme.TrailFg).
 				Background(colours.Green).
 				Bold(true),
+			Target: lipgloss.NewStyle().
+				Foreground(adventureTheme.TargetFg).
+				Background(adventureTheme.TargetBg).
+				Bold(true),
+			TargetReached: lipgloss.NewStyle().
+				Foreground(adventureTheme.TargetReachedFg).
+				Background(adventureTheme.TargetReachedBg).
+				Bold(true).
+				Blink(true),
 		},
 	},
 }
