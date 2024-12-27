@@ -27,6 +27,7 @@ type Adventure struct {
 	stats            *game.Stats
 	currentTime      int
 	levelManager     *level.Manager
+	resetMovement    bool
 }
 
 // NewAdventure creates a new Adventure instance
@@ -88,16 +89,9 @@ func (a *Adventure) initializeGrid() {
 
 		// Get starting position and place player
 		a.playerX, a.playerY = a.levelManager.GetCurrentLevel().GetStartPosition()
-		a.grid[a.playerY][a.playerX] = a.gameView.PlayerCharacter.rune
 
 		// Update game view with initial grid
 		a.gameView.Field = a.grid
-
-		// Update target character for rendering
-		a.gameView.TargetCharacter = Character{
-			rune:   a.levelManager.GetCurrentLevel().GetTargetCharacter(),
-			string: string(a.levelManager.GetCurrentLevel().GetTargetCharacter()),
-		}
 
 		// Update level info display
 		a.levelInfo.SetLevel(a.levelManager.GetLevelNumber())
@@ -109,12 +103,18 @@ func (a *Adventure) initializeGrid() {
 
 // movePlayer moves the player and leaves a trail
 func (a *Adventure) movePlayer(dx, dy int) tea.Cmd {
+	if a.resetMovement {
+		return nil
+	}
+
 	newX := a.playerX + dx
 	newY := a.playerY + dy
 
+	chars := a.levelManager.GetCurrentLevel().GetCharacters()
+
 	if newX >= 0 && newX < a.gridWidth && newY >= 0 && newY < a.gridHeight {
 		// create a trail
-		a.grid[a.playerY][a.playerX] = a.gameView.TrailCharacter.rune
+		a.grid[a.playerY][a.playerX] = chars.Player.Trail.Rune
 
 		// update player
 		a.playerX = newX
@@ -122,17 +122,29 @@ func (a *Adventure) movePlayer(dx, dy int) tea.Cmd {
 
 		// check if target reached before updating player position in grid
 		if a.levelManager.GetCurrentLevel().Update(a.playerX, a.playerY) {
+			// update instructions
+			a.gameInstructions.SetInstructions(a.levelManager.GetCurrentLevel().GetInstructions())
+
 			if a.levelManager.GetCurrentLevel().IsCompleted() {
 				return tea.Quit
 			}
-			// get grid with target
-			a.grid = a.levelManager.GetCurrentLevel().GetGrid()
-			// set player at new position
-			a.playerX, a.playerY = a.levelManager.GetCurrentLevel().GetStartPosition()
+
+			a.resetMovement = true
+			return tea.Batch(
+				tea.Tick(500*time.Millisecond, func(t time.Time) tea.Msg {
+					a.resetMovement = false
+					return nil
+				}),
+				func() tea.Msg {
+					a.grid = a.levelManager.GetCurrentLevel().GetGrid()
+					a.playerX, a.playerY = a.levelManager.GetCurrentLevel().GetStartPosition()
+					return nil
+				},
+			)
 		}
 
 		// position player
-		a.grid[a.playerY][a.playerX] = a.gameView.PlayerCharacter.rune
+		a.grid[a.playerY][a.playerX] = chars.Player.Cursor.Rune
 
 		// update gameView with current grid
 		a.gameView.Field = a.grid
