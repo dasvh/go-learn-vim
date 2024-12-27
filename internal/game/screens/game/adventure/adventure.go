@@ -20,14 +20,10 @@ type Adventure struct {
 	size             tea.WindowSizeMsg
 	gridWidth        int
 	gridHeight       int
-	playerX          int
-	playerY          int
-	grid             [][]rune
 	controls         Controls
 	stats            *game.Stats
 	currentTime      int
 	levelManager     *level.Manager
-	resetMovement    bool
 }
 
 // NewAdventure creates a new Adventure instance
@@ -61,96 +57,9 @@ type ScreenParams struct {
 	Bindings     []key.Binding
 }
 
-// initializeGrid sets up the grid and places the player in the center
-// func (a *Adventure) initializeGrid() {
-// 	newGrid := make([][]rune, a.gridHeight)
-// 	for y := 0; y < a.gridHeight; y++ {
-// 		newGrid[y] = make([]rune, a.gridWidth)
-// 	}
-
-//		a.playerX = a.gridWidth / 2
-//		a.playerY = a.gridHeight / 2
-//		newGrid[a.playerY][a.playerX] = a.gameView.PlayerCharacter.rune
-//		a.grid = newGrid
-//	}
-func (a *Adventure) initializeGrid() {
-	// Calculate grid dimensions based on window size
-	if a.size.Width > 0 && a.size.Height > 0 {
-		a.gridWidth = a.size.Width - view.GetComponentWidth(view.Styles.Adventure.Map.Border)
-		a.gridHeight = a.size.Height - (view.GetComponentHeight(view.Styles.Adventure.Header.Border) +
-			view.GetComponentHeight(view.Styles.Adventure.Instructions.Style) +
-			view.GetComponentHeight(view.Styles.Adventure.Map.Border))
-
-		// Initialize level with current dimensions
-		a.levelManager.InitCurrentLevel(a.gridWidth, a.gridHeight)
-
-		// Get fresh grid from level
-		a.grid = a.levelManager.GetCurrentLevel().GetGrid()
-
-		// Get starting position and place player
-		a.playerX, a.playerY = a.levelManager.GetCurrentLevel().GetStartPosition()
-
-		// Update game view with initial grid
-		a.gameView.Field = a.grid
-
-		// Update level info display
-		a.levelInfo.SetLevel(a.levelManager.GetLevelNumber())
-
-		// Update instructions
-		a.gameInstructions.SetInstructions(a.levelManager.GetCurrentLevel().GetInstructions())
-	}
-}
-
-// movePlayer moves the player and leaves a trail
-func (a *Adventure) movePlayer(dx, dy int) tea.Cmd {
-	if a.resetMovement {
-		return nil
-	}
-
-	newX := a.playerX + dx
-	newY := a.playerY + dy
-
-	chars := a.levelManager.GetCurrentLevel().GetCharacters()
-
-	if newX >= 0 && newX < a.gridWidth && newY >= 0 && newY < a.gridHeight {
-		// create a trail
-		a.grid[a.playerY][a.playerX] = chars.Player.Trail.Rune
-
-		// update player
-		a.playerX = newX
-		a.playerY = newY
-
-		// check if target reached before updating player position in grid
-		if a.levelManager.GetCurrentLevel().Update(a.playerX, a.playerY) {
-			// update instructions
-			a.gameInstructions.SetInstructions(a.levelManager.GetCurrentLevel().GetInstructions())
-
-			if a.levelManager.GetCurrentLevel().IsCompleted() {
-				return tea.Quit
-			}
-
-			a.resetMovement = true
-			return tea.Batch(
-				tea.Tick(500*time.Millisecond, func(t time.Time) tea.Msg {
-					a.resetMovement = false
-					return nil
-				}),
-				func() tea.Msg {
-					a.grid = a.levelManager.GetCurrentLevel().GetGrid()
-					a.playerX, a.playerY = a.levelManager.GetCurrentLevel().GetStartPosition()
-					return nil
-				},
-			)
-		}
-
-		// position player
-		a.grid[a.playerY][a.playerX] = chars.Player.Cursor.Rune
-
-		// update gameView with current grid
-		a.gameView.Field = a.grid
-	}
-
-	return nil
+func (a *Adventure) initializeLevel() {
+	a.levelManager.InitCurrentLevel(a.gridWidth, a.gridHeight)
+	a.gameInstructions.SetInstructions(a.levelManager.GetCurrentLevel().GetInstructions())
 }
 
 // TickMsg represents a tick message
@@ -158,13 +67,11 @@ type TickMsg time.Time
 
 // Init initializes the game
 func (a *Adventure) Init() tea.Cmd {
-	a.initializeGrid()
 	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
 		return TickMsg(t)
 	})
 }
 
-// Update updates the game state
 func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case TickMsg:
@@ -184,34 +91,47 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				view.GetComponentHeight(view.Styles.Adventure.Instructions.Style) +
 				view.GetComponentHeight(view.Styles.Adventure.Map.Border))
 
-			a.initializeGrid()
+			a.initializeLevel()
 		}
 	case tea.KeyMsg:
 		keyString := msg.String()
 		isMotionKey := false
-		var cmd tea.Cmd
+		var delta level.Position
 		switch {
 		case key.Matches(msg, a.controls.MoveLeft):
 			isMotionKey = true
-			cmd = a.movePlayer(-1, 0)
+			delta = level.Position{X: -1, Y: 0}
 		case key.Matches(msg, a.controls.MoveRight):
 			isMotionKey = true
-			cmd = a.movePlayer(1, 0)
+			delta = level.Position{X: 1, Y: 0}
 		case key.Matches(msg, a.controls.MoveUp):
 			isMotionKey = true
-			cmd = a.movePlayer(0, -1)
+			delta = level.Position{X: 0, Y: -1}
 		case key.Matches(msg, a.controls.MoveDown):
 			isMotionKey = true
-			cmd = a.movePlayer(0, 1)
+			delta = level.Position{X: 0, Y: 1}
 		case key.Matches(msg, a.controls.Quit):
 			return a, tea.Quit
 		}
 
-		// only register motion keys
-		a.stats.RegisterKey(keyString, isMotionKey)
-		a.gameStats.Text = fmt.Sprintf(StatsFormat, a.stats.TotalKeystrokes, a.stats.Time)
+		// update player action
+		result := a.levelManager.GetCurrentLevel().UpdatePlayerAction(delta)
 
-		return a, cmd
+		// update game instructions
+		if result.InstructionMessage != "" {
+			a.gameInstructions.SetInstructions(result.InstructionMessage)
+		}
+		if result.Completed {
+			return a, tea.Quit
+		}
+
+		// only register keystrokes if it's a motion key and the move is valid
+		if isMotionKey && result.ValidMove {
+			a.stats.RegisterKey(keyString, true)
+		}
+
+		a.gameStats.Text = fmt.Sprintf(StatsFormat, a.stats.TotalKeystrokes, a.stats.Time)
+		return a, nil
 	}
 	return a, nil
 }
@@ -219,7 +139,8 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View renders the entire game screen
 func (a *Adventure) View() string {
 	// update game view content
-	a.gameView.Field = a.grid
+	currentView := a.levelManager.GetCurrentLevel().Render()
+	a.gameView.Field = currentView
 
 	return RenderScreen(ScreenParams{
 		Size:         a.size,

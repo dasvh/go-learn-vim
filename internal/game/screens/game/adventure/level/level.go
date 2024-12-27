@@ -2,42 +2,54 @@ package level
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/dasvh/go-learn-vim/internal/game/screens/game/adventure/character"
 )
 
+// Level represents a game level
 type Level interface {
 	Init(width, height int)
-	Update(playerX, playerY int) bool
-	GetStartPosition() (int, int)
-	GetGrid() [][]rune
+	UpdatePlayerAction(position Position) PlayerActionResult
+	PlacePlayer(position Position)
+	Render() [][]rune
+	GetStartPosition() Position
 	GetInstructions() string
-	GetCharacters() *character.Characters
 	IsCompleted() bool
 }
 
+// Position represents a 2D position
 type Position struct {
 	X int
 	Y int
 }
 
+// target represents a position and whether it has been reached
 type target struct {
 	position Position
 	reached  bool
 }
 
-type LevelZero struct {
-	grid      [][]rune
-	current   int
-	width     int
-	height    int
-	targets   []target
-	completed bool
-	init      bool
-	chars     *character.Characters
+// PlayerActionResult represents the result of a player action
+type PlayerActionResult struct {
+	UpdatedPosition    Position
+	Completed          bool
+	ValidMove          bool
+	InstructionMessage string
 }
 
-func (level0 *LevelZero) GetCharacters() *character.Characters {
-	return level0.chars
+type LevelZero struct {
+	grid          [][]rune
+	current       int
+	width         int
+	height        int
+	player        Position
+	targets       []target
+	completed     bool
+	init          bool
+	chars         *character.Characters
+	movementBlock bool
+	blockEnds     time.Time
 }
 
 func NewLevelZero() Level {
@@ -46,6 +58,36 @@ func NewLevelZero() Level {
 	}
 }
 
+func (level0 *LevelZero) initializeGrid() {
+	// clear grid on init
+	if !level0.init {
+		level0.grid = make([][]rune, level0.height)
+		for y := 0; y < level0.height; y++ {
+			level0.grid[y] = make([]rune, level0.width)
+			for x := 0; x < level0.width; x++ {
+				level0.grid[y][x] = ' '
+			}
+		}
+		level0.init = true
+	}
+
+	level0.PlacePlayer(level0.GetStartPosition())
+
+	// todo: figure out how to set the characters even after the game is completed
+	for i, target := range level0.targets {
+		if i == level0.current {
+			level0.grid[target.position.Y][target.position.X] = level0.chars.Target.Active.Rune
+		} else {
+			if target.reached {
+				level0.grid[target.position.Y][target.position.X] = level0.chars.Target.Reached.Rune
+			} else {
+				level0.grid[target.position.Y][target.position.X] = level0.chars.Target.Inactive.Rune
+			}
+		}
+	}
+}
+
+// Init initializes the level with the given dimensions
 func (level0 *LevelZero) Init(width, height int) {
 	level0.width = width
 	level0.height = height
@@ -66,68 +108,103 @@ func (level0 *LevelZero) Init(width, height int) {
 	level0.initializeGrid()
 }
 
-func (level0 *LevelZero) initializeGrid() {
-	// clear grid on init
-	if !level0.init {
-		level0.grid = make([][]rune, level0.height)
-		for y := 0; y < level0.height; y++ {
-			level0.grid[y] = make([]rune, level0.width)
-			for x := 0; x < level0.width; x++ {
-				level0.grid[y][x] = ' '
-			}
-		}
-		level0.init = true
-	}
-
-	// set player
-	level0.grid[level0.height/2][level0.width/2] = level0.chars.Player.Cursor.Rune
-
-	// todo: figure out how to set the characters even after the game is completed
-	for i, target := range level0.targets {
-		if i == level0.current {
-			level0.grid[target.position.Y][target.position.X] = level0.chars.Target.Active.Rune
-		} else {
-			if target.reached {
-				level0.grid[target.position.Y][target.position.X] = level0.chars.Target.Reached.Rune
-			} else {
-				level0.grid[target.position.Y][target.position.X] = level0.chars.Target.Inactive.Rune
-			}
+// UpdatePlayerAction handles player movement and target completion
+func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
+	// block movement if cooldown is active
+	if level0.movementBlock && time.Now().Before(level0.blockEnds) {
+		return PlayerActionResult{
+			UpdatedPosition:    level0.player,
+			Completed:          level0.completed,
+			ValidMove:          false,
+			InstructionMessage: level0.GetInstructions(),
 		}
 	}
-}
 
-func (level0 *LevelZero) Update(playerX, playerY int) bool {
-	target := level0.targets[level0.current]
+	// unblock movement if cooldown is over
+	if level0.movementBlock {
+		level0.movementBlock = false
+	}
 
-	// check if player reached target
-	if playerX == target.position.X && playerY == target.position.Y {
+	newPos := Position{
+		X: level0.player.X + delta.X,
+		Y: level0.player.Y + delta.Y,
+	}
+
+	// check if player is within bounds
+	if newPos.X < 0 || newPos.X >= level0.width || newPos.Y < 0 || newPos.Y >= level0.height {
+		return PlayerActionResult{
+			UpdatedPosition:    level0.player,
+			Completed:          level0.completed,
+			ValidMove:          false,
+			InstructionMessage: level0.GetInstructions(),
+		}
+	}
+
+	currentTarget := level0.targets[level0.current]
+	// check if player has reached the target
+	if currentTarget.position == newPos {
 		level0.targets[level0.current].reached = true
-
-		// check if this was the last target
 		if level0.current == len(level0.targets)-1 {
 			level0.completed = true
-			return true
+			return PlayerActionResult{
+				UpdatedPosition:    level0.GetStartPosition(),
+				Completed:          true,
+				ValidMove:          true,
+				InstructionMessage: "Level completed!",
+			}
 		}
 
 		level0.current++
 		level0.initializeGrid()
-		return true // reset player
+
+		// block movement for 500ms after reaching a target
+		level0.movementBlock = true
+		level0.blockEnds = time.Now().Add(500 * time.Millisecond)
+
+		return PlayerActionResult{
+			UpdatedPosition:    level0.GetStartPosition(),
+			Completed:          false,
+			ValidMove:          true,
+			InstructionMessage: level0.GetInstructions(),
+		}
 	}
-	return false
+
+	// update player position
+	level0.grid[level0.player.Y][level0.player.X] = level0.chars.Player.Trail.Rune
+	level0.grid[newPos.Y][newPos.X] = level0.chars.Player.Cursor.Rune
+	level0.player = newPos
+
+	return PlayerActionResult{
+		UpdatedPosition:    newPos,
+		Completed:          false,
+		ValidMove:          true,
+		InstructionMessage: level0.GetInstructions(),
+	}
 }
 
-func (level0 *LevelZero) GetStartPosition() (int, int) {
-	return level0.width / 2, level0.height / 2
+// PlacePlayer places the player at the given position
+func (level0 *LevelZero) PlacePlayer(position Position) {
+	level0.player.X = position.X
+	level0.player.Y = position.Y
+	level0.grid[position.Y][position.X] = level0.chars.Player.Cursor.Rune
 }
 
-func (level0 *LevelZero) GetGrid() [][]rune {
+// Render provides the visual representation of the level
+func (level0 *LevelZero) Render() [][]rune {
 	return level0.grid
 }
 
+// GetStartPosition returns the starting player position
+func (level0 *LevelZero) GetStartPosition() Position {
+	return Position{level0.width / 2, level0.height / 2}
+}
+
+// GetInstructions returns the instructions for the current level
 func (level0 *LevelZero) GetInstructions() string {
 	return fmt.Sprintf("Target %d/%d: Reach the X using hjkl keys", level0.current+1, len(level0.targets))
 }
 
+// IsCompleted returns whether the level is completed
 func (level0 *LevelZero) IsCompleted() bool {
 	return level0.completed
 }
