@@ -14,20 +14,37 @@ type Level interface {
 	PlacePlayer(position Position)
 	Render() [][]rune
 	GetStartPosition() Position
+	GetCurrentPosition() Position
+	GetTargets() []Target
+	GetCurrentTarget() int
 	GetInstructions() string
 	IsCompleted() bool
+	Restore(state SavedLevel) error
 }
 
-// Position represents a 2D position
+const levelNumberZero = 0
+
+// SavedLevel represents the state of a saved level
+type SavedLevel struct {
+	Number         int      `json:"number"`
+	Width          int      `json:"width"`
+	Height         int      `json:"height"`
+	PlayerPosition Position `json:"player_position"`
+	Targets        []Target `json:"targets"`
+	CurrentTarget  int      `json:"current_target"`
+	Completed      bool     `json:"completed"`
+}
+
+// Position represents a 2D Position
 type Position struct {
 	X int
 	Y int
 }
 
-// target represents a position and whether it has been reached
-type target struct {
-	position Position
-	reached  bool
+// Target represents a Position and whether it has been Reached
+type Target struct {
+	Position Position
+	Reached  bool
 }
 
 // PlayerActionResult represents the result of a player action
@@ -44,7 +61,7 @@ type LevelZero struct {
 	width         int
 	height        int
 	player        Position
-	targets       []target
+	targets       []Target
 	completed     bool
 	init          bool
 	chars         *character.Characters
@@ -52,10 +69,10 @@ type LevelZero struct {
 	blockEnds     time.Time
 }
 
-func NewLevelZero() Level {
+func NewLevelZero() (Level, int) {
 	return &LevelZero{
 		chars: &character.DefaultCharacters,
-	}
+	}, levelNumberZero
 }
 
 func (level0 *LevelZero) initializeGrid() {
@@ -68,21 +85,31 @@ func (level0 *LevelZero) initializeGrid() {
 				level0.grid[y][x] = ' '
 			}
 		}
+		// restore player position from save state
+		if level0.player != (Position{}) {
+			level0.PlacePlayer(level0.player)
+		} else {
+			level0.PlacePlayer(level0.GetStartPosition())
+		}
 		level0.init = true
+		level0.updateTargets()
+		return
 	}
 
 	level0.PlacePlayer(level0.GetStartPosition())
+	level0.updateTargets()
+}
 
-	// todo: figure out how to set the characters even after the game is completed
+// updateTargets updates the Target positions on the grid
+func (level0 *LevelZero) updateTargets() {
 	for i, target := range level0.targets {
-		if i == level0.current {
-			level0.grid[target.position.Y][target.position.X] = level0.chars.Target.Active.Rune
-		} else {
-			if target.reached {
-				level0.grid[target.position.Y][target.position.X] = level0.chars.Target.Reached.Rune
-			} else {
-				level0.grid[target.position.Y][target.position.X] = level0.chars.Target.Inactive.Rune
-			}
+		switch {
+		case i == level0.current:
+			level0.grid[target.Position.Y][target.Position.X] = level0.chars.Target.Active.Rune
+		case target.Reached:
+			level0.grid[target.Position.Y][target.Position.X] = level0.chars.Target.Reached.Rune
+		default:
+			level0.grid[target.Position.Y][target.Position.X] = level0.chars.Target.Inactive.Rune
 		}
 	}
 }
@@ -97,7 +124,7 @@ func (level0 *LevelZero) Init(width, height int) {
 	offsetY := int(float64(height) * 0.2)
 
 	// define targets
-	level0.targets = []target{
+	level0.targets = []Target{
 		{Position{offsetX, offsetY}, false},                          // top left
 		{Position{width - offsetX - 1, offsetY}, false},              // top right
 		{Position{offsetX, height - offsetY - 1}, false},             // bottom left
@@ -108,7 +135,7 @@ func (level0 *LevelZero) Init(width, height int) {
 	level0.initializeGrid()
 }
 
-// UpdatePlayerAction handles player movement and target completion
+// UpdatePlayerAction handles player movement and Target completion
 func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 	// block movement if cooldown is active
 	if level0.movementBlock && time.Now().Before(level0.blockEnds) {
@@ -141,9 +168,9 @@ func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 	}
 
 	currentTarget := level0.targets[level0.current]
-	// check if player has reached the target
-	if currentTarget.position == newPos {
-		level0.targets[level0.current].reached = true
+	// check if player has Reached the Target
+	if currentTarget.Position == newPos {
+		level0.targets[level0.current].Reached = true
 		if level0.current == len(level0.targets)-1 {
 			level0.completed = true
 			return PlayerActionResult{
@@ -157,7 +184,7 @@ func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 		level0.current++
 		level0.initializeGrid()
 
-		// block movement for 500ms after reaching a target
+		// block movement for 500ms after reaching a Target
 		level0.movementBlock = true
 		level0.blockEnds = time.Now().Add(500 * time.Millisecond)
 
@@ -169,7 +196,7 @@ func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 		}
 	}
 
-	// update player position
+	// update player Position
 	level0.grid[level0.player.Y][level0.player.X] = level0.chars.Player.Trail.Rune
 	level0.grid[newPos.Y][newPos.X] = level0.chars.Player.Cursor.Rune
 	level0.player = newPos
@@ -182,7 +209,7 @@ func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 	}
 }
 
-// PlacePlayer places the player at the given position
+// PlacePlayer places the player at the given Position
 func (level0 *LevelZero) PlacePlayer(position Position) {
 	level0.player.X = position.X
 	level0.player.Y = position.Y
@@ -194,9 +221,24 @@ func (level0 *LevelZero) Render() [][]rune {
 	return level0.grid
 }
 
-// GetStartPosition returns the starting player position
+// GetStartPosition returns the starting player Position
 func (level0 *LevelZero) GetStartPosition() Position {
 	return Position{level0.width / 2, level0.height / 2}
+}
+
+// GetCurrentPosition returns the current player Position
+func (level0 *LevelZero) GetCurrentPosition() Position {
+	return level0.player
+}
+
+// GetTargets returns the Target positions
+func (level0 *LevelZero) GetTargets() []Target {
+	return level0.targets
+}
+
+// GetCurrentTarget returns the current Target index
+func (level0 *LevelZero) GetCurrentTarget() int {
+	return level0.current
 }
 
 // GetInstructions returns the instructions for the current level
@@ -207,4 +249,23 @@ func (level0 *LevelZero) GetInstructions() string {
 // IsCompleted returns whether the level is completed
 func (level0 *LevelZero) IsCompleted() bool {
 	return level0.completed
+}
+
+// Restore restores the level state from a saved state
+func (level0 *LevelZero) Restore(state SavedLevel) error {
+	if state.Width <= 0 || state.Height <= 0 {
+		return fmt.Errorf("invalid dimensions in save state")
+	}
+
+	level0.width = state.Width
+	level0.height = state.Height
+	level0.player = state.PlayerPosition
+	level0.targets = state.Targets
+	level0.current = state.CurrentTarget
+	level0.completed = state.Completed
+	level0.init = false
+
+	level0.initializeGrid()
+
+	return nil
 }

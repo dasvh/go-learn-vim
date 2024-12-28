@@ -5,6 +5,12 @@ import tea "github.com/charmbracelet/bubbletea"
 // GameScreen represents the different screens/views available in the game
 type GameScreen uint8
 
+// ScreenTransitionMsg represents a message to transition to a different screen
+type ScreenTransitionMsg struct {
+	Screen GameScreen
+	Model  tea.Model
+}
+
 const (
 	// MainMenuScreen represents the main menu view
 	MainMenuScreen GameScreen = iota
@@ -18,6 +24,8 @@ const (
 	CheatsheetInfoScreen
 	// NewGameScreen represents the new game view
 	NewGameScreen
+	// LoadGameScreen represents the load game view
+	LoadGameScreen
 	// AdventureModeScreen represents the adventure game mode view
 	AdventureModeScreen
 )
