@@ -3,6 +3,8 @@ package game
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/dasvh/go-learn-vim/internal/game/screens"
+	"github.com/dasvh/go-learn-vim/internal/game/screens/game"
+	"github.com/dasvh/go-learn-vim/internal/game/screens/game/adventure"
 	"github.com/dasvh/go-learn-vim/internal/game/screens/info"
 	"github.com/dasvh/go-learn-vim/internal/game/state"
 )
@@ -23,6 +25,8 @@ func NewGame() *Game {
 	manager.Register(state.InfoMenuScreen, info.NewInfoMenu())
 	manager.Register(state.VimInfoScreen, info.NewVimInfo())
 	manager.Register(state.MotionsInfoScreen, info.NewMotionsInfo())
+	manager.Register(state.NewGameScreen, game.NewModes())
+	manager.Register(state.AdventureModeScreen, adventure.NewAdventure())
 
 	return &Game{
 		manager: manager,
