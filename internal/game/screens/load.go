@@ -18,6 +18,7 @@ const (
 type Load struct {
 	*view.MenuView
 	repo storage.AdventureGameRepository
+	size tea.WindowSizeMsg
 }
 
 // NewLoad returns a new Load instance
@@ -37,18 +38,21 @@ func (l *Load) LoadAdventureGame() tea.Cmd {
 			return state.ChangeScreen(state.MainMenuScreen)
 		}
 
-		// create a new adventure instance
-		newAdventure := adventure.NewAdventure(l.repo)
+		loadedGame, err := l.repo.LoadAdventureGame()
+		if err != nil {
+			fmt.Printf("Failed to load saved game: %v\n", err)
+			return state.ChangeScreen(state.MainMenuScreen)
+		}
 
-		// load the saved game into the new adventure instance
-		if err := newAdventure.Load(l.repo); err != nil {
+		loadedAdventure, err := adventure.LoadAdventure(l.repo, loadedGame, l.size)
+		if err != nil {
 			fmt.Printf("Failed to load saved game: %v\n", err)
 			return state.ChangeScreen(state.MainMenuScreen)
 		}
 
 		return state.ScreenTransitionMsg{
 			Screen: state.AdventureModeScreen,
-			Model:  newAdventure,
+			Model:  loadedAdventure,
 		}
 	}
 }
@@ -58,6 +62,10 @@ func (l *Load) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	_, cmd := l.MenuView.Update(msg)
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		if msg.Width > 0 && msg.Height > 0 {
+			l.size = msg
+		}
 	case tea.KeyMsg:
 		if key.Matches(msg, l.Controls().Select) {
 			return l, l.HandleSelection()

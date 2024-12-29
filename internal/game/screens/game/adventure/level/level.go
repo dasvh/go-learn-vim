@@ -2,9 +2,8 @@ package level
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/dasvh/go-learn-vim/internal/game/screens/game/adventure/character"
+	"time"
 )
 
 // Level represents a game level
@@ -64,6 +63,7 @@ type LevelZero struct {
 	targets       []Target
 	completed     bool
 	init          bool
+	restore       bool
 	chars         *character.Characters
 	movementBlock bool
 	blockEnds     time.Time
@@ -76,28 +76,22 @@ func NewLevelZero() (Level, int) {
 }
 
 func (level0 *LevelZero) initializeGrid() {
-	// clear grid on init
-	if !level0.init {
-		level0.grid = make([][]rune, level0.height)
-		for y := 0; y < level0.height; y++ {
-			level0.grid[y] = make([]rune, level0.width)
-			for x := 0; x < level0.width; x++ {
-				level0.grid[y][x] = ' '
-			}
+	level0.grid = make([][]rune, level0.height)
+	for y := 0; y < level0.height; y++ {
+		level0.grid[y] = make([]rune, level0.width)
+		for x := 0; x < level0.width; x++ {
+			level0.grid[y][x] = ' '
 		}
-		// restore player position from save state
-		if level0.player != (Position{}) {
-			level0.PlacePlayer(level0.player)
-		} else {
-			level0.PlacePlayer(level0.GetStartPosition())
-		}
-		level0.init = true
-		level0.updateTargets()
-		return
 	}
 
-	level0.PlacePlayer(level0.GetStartPosition())
+	if level0.restore {
+		level0.PlacePlayer(level0.player)
+	} else {
+		level0.PlacePlayer(level0.GetStartPosition())
+	}
+
 	level0.updateTargets()
+	level0.restore = false
 }
 
 // updateTargets updates the Target positions on the grid
@@ -114,24 +108,44 @@ func (level0 *LevelZero) updateTargets() {
 	}
 }
 
+// defineTargets defines the Target positions based on the level dimensions
+func (level0 *LevelZero) defineTargets() []Target {
+	// offset targets from the border by 20%
+	offsetX := int(float64(level0.width) * 0.2)
+	offsetY := int(float64(level0.height) * 0.2)
+
+	return []Target{
+		{Position{offsetX, offsetY}, false},                                        // Top left
+		{Position{level0.width - offsetX - 1, offsetY}, false},                     // Top right
+		{Position{offsetX, level0.height - offsetY - 1}, false},                    // Bottom left
+		{Position{level0.width - offsetX - 1, level0.height - offsetY - 1}, false}, // Bottom right
+	}
+}
+
+// replaceTargets replaces the current targets with the saved targets
+func (level0 *LevelZero) replaceTargets(savedTargets []Target) {
+	// define targets based on current dimensions
+	targets := level0.defineTargets()
+
+	// transfer the Reached state from the saved targets
+	for i := range targets {
+		if i < len(savedTargets) {
+			targets[i].Reached = savedTargets[i].Reached
+		}
+	}
+	level0.targets = targets
+	level0.updateTargets()
+}
+
 // Init initializes the level with the given dimensions
 func (level0 *LevelZero) Init(width, height int) {
 	level0.width = width
 	level0.height = height
 
-	// offset targets from the border by 20%
-	offsetX := int(float64(width) * 0.2)
-	offsetY := int(float64(height) * 0.2)
-
 	// define targets
-	level0.targets = []Target{
-		{Position{offsetX, offsetY}, false},                          // top left
-		{Position{width - offsetX - 1, offsetY}, false},              // top right
-		{Position{offsetX, height - offsetY - 1}, false},             // bottom left
-		{Position{width - offsetX - 1, height - offsetY - 1}, false}, // bottom right
-	}
-
+	level0.targets = level0.defineTargets()
 	level0.current = 0
+
 	level0.initializeGrid()
 }
 
@@ -264,6 +278,9 @@ func (level0 *LevelZero) Restore(state SavedLevel) error {
 	level0.current = state.CurrentTarget
 	level0.completed = state.Completed
 	level0.init = false
+	level0.restore = true
+
+	level0.replaceTargets(state.Targets)
 
 	level0.initializeGrid()
 

@@ -26,11 +26,12 @@ type Adventure struct {
 	currentTime      int
 	levelManager     *level.Manager
 	repo             storage.AdventureGameRepository
+	inProgress       bool
 }
 
 // NewAdventure creates a new Adventure instance
 func NewAdventure(repo storage.AdventureGameRepository) *Adventure {
-	controls := NewBasicControls() // Using basic Controls for now
+	controls := NewBasicControls()
 	levelInfo, gameMode, statsInfo, levelInstructions, gameView := InitializeComponents()
 	levelManager := level.NewManager()
 	return &Adventure{
@@ -44,6 +45,66 @@ func NewAdventure(repo storage.AdventureGameRepository) *Adventure {
 		currentTime:      0,
 		levelManager:     levelManager,
 		repo:             repo,
+	}
+}
+
+// LoadAdventure creates a new Adventure instance from a saved game state
+func LoadAdventure(repo storage.AdventureGameRepository, state storage.AdventureGameState, size tea.WindowSizeMsg) (*Adventure, error) {
+	controls := NewBasicControls()
+	levelInfo, gameMode, statsInfo, levelInstructions, gameView := InitializeComponents()
+	levelManager := level.NewManager()
+
+	adventure := &Adventure{
+		levelInfo:        levelInfo,
+		gameModeInfo:     gameMode,
+		gameStats:        statsInfo,
+		gameInstructions: levelInstructions,
+		gameView:         gameView,
+		controls:         controls,
+		stats:            &state.Stats,
+		levelManager:     levelManager,
+		repo:             repo,
+		size:             size,
+		inProgress:       true,
+	}
+
+	// Calculate scaling factors
+	xScale := float64(size.Width) / float64(state.Size.Width)
+	yScale := float64(size.Height) / float64(state.Size.Height)
+
+	// debug info
+	debugString := fmt.Sprintf("size: %+v, xScale: %+v yScale: %+v, state.Size: %+v", size, xScale, yScale, state.Size)
+	adventure.gameInstructions.SetInstructions(debugString)
+
+	// resize the grid based on the (new) window size
+	adventure.gridWidth = size.Width - view.GetComponentWidth(view.Styles.Adventure.Map.Border)
+	adventure.gridHeight = size.Height - (view.GetComponentHeight(view.Styles.Adventure.Header.Border) +
+		view.GetComponentHeight(view.Styles.Adventure.Instructions.Style) +
+		view.GetComponentHeight(view.Styles.Adventure.Map.Border))
+
+	// scale the player position based on the new grid dimensions
+	state.Level.PlayerPosition = scalePosition(state.Level.PlayerPosition, xScale, yScale)
+
+	// update the Level.Width and Level.Height
+	state.Level.Width = adventure.gridWidth
+	state.Level.Height = adventure.gridHeight
+
+	if err := adventure.levelManager.LevelFromSave(state.Level); err != nil {
+		return nil, fmt.Errorf("failed to load level state: %w", err)
+	}
+
+	adventure.levelInfo.SetLevel(state.Level.Number)
+	adventure.gameStats.Text = fmt.Sprintf(StatsFormat, state.Stats.TotalKeystrokes, state.Stats.TimeElapsed)
+	//adventure.gameInstructions.SetInstructions(adventure.levelManager.GetCurrentLevel().GetInstructions())
+
+	return adventure, nil
+}
+
+// scalePosition scales a position based on the x and y scaling factors
+func scalePosition(pos level.Position, xScale, yScale float64) level.Position {
+	return level.Position{
+		X: int(float64(pos.X) * xScale),
+		Y: int(float64(pos.Y) * yScale),
 	}
 }
 
@@ -62,6 +123,7 @@ func (a *Adventure) initializeLevel() {
 	a.levelManager.InitCurrentLevel(a.gridWidth, a.gridHeight)
 	a.levelInfo.SetLevel(a.levelManager.GetLevelNumber())
 	a.gameInstructions.SetInstructions(a.levelManager.GetCurrentLevel().GetInstructions())
+	a.inProgress = true
 }
 
 // Save saves the game state
@@ -84,32 +146,6 @@ func (a *Adventure) Save(repo storage.AdventureGameRepository) error {
 		},
 	}
 	return repo.SaveAdventureGame(state)
-}
-
-// Load loads the game state
-func (a *Adventure) Load(repo storage.AdventureGameRepository) error {
-	state, err := repo.LoadAdventureGame()
-	if err != nil {
-		return fmt.Errorf("failed to load save file: %w", err)
-	}
-
-	if err := a.levelManager.LevelFromSave(state.Level); err != nil {
-		return fmt.Errorf("failed to load level state: %w", err)
-	}
-
-	a.size = state.Size
-	a.gridWidth = state.Level.Width
-	a.gridHeight = state.Level.Height
-
-	a.levelInfo.SetLevel(state.Level.Number)
-	a.gameStats.Text = fmt.Sprintf(StatsFormat, state.Stats.TotalKeystrokes, state.Stats.TimeElapsed)
-	a.gameInstructions.SetInstructions(a.levelManager.GetCurrentLevel().GetInstructions())
-
-	a.stats.KeyPresses = state.Stats.KeyPresses
-	a.stats.TotalKeystrokes = state.Stats.TotalKeystrokes
-	a.stats.TimeElapsed = state.Stats.TimeElapsed
-
-	return nil
 }
 
 // TickMsg represents a tick message
@@ -141,7 +177,10 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				view.GetComponentHeight(view.Styles.Adventure.Instructions.Style) +
 				view.GetComponentHeight(view.Styles.Adventure.Map.Border))
 
-			a.initializeLevel()
+			// TODO: figure out how to reinit the level without losing the progress or resetting the player position
+			if !a.inProgress {
+				a.initializeLevel()
+			}
 		}
 	case tea.KeyMsg:
 		keyString := msg.String()

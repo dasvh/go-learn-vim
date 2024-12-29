@@ -25,7 +25,7 @@ func NewGame(repo storage.AdventureGameRepository) *Game {
 
 	hasIncompleteGame, err := repo.HasIncompleteGame()
 	if err != nil {
-		fmt.Println("Failed to check for game saves")
+		fmt.Println("Failed to check for game saves + ", err)
 	}
 
 	manager.Register(state.MainMenuScreen, screens.NewMainMenu(hasIncompleteGame))
