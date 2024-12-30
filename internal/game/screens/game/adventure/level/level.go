@@ -42,12 +42,6 @@ type Position struct {
 	Y int
 }
 
-// Target represents a Position and whether it has been Reached
-type Target struct {
-	Position Position
-	Reached  bool
-}
-
 // PlayerActionResult represents the result of a player action
 type PlayerActionResult struct {
 	UpdatedPosition    Position
@@ -57,23 +51,26 @@ type PlayerActionResult struct {
 }
 
 type LevelZero struct {
-	grid          [][]rune
-	currentTarget int
-	width         int
-	height        int
-	player        Position
-	targets       []Target
-	completed     bool
-	restore       bool
-	inProgress    bool
-	chars         *character.Characters
-	movementBlock bool
-	blockEnds     time.Time
+	grid           [][]rune
+	currentTarget  int
+	width          int
+	height         int
+	player         Position
+	targets        []Target
+	completed      bool
+	restore        bool
+	inProgress     bool
+	chars          *character.Characters
+	movementBlock  bool
+	blockEnds      time.Time
+	targetBehavior TargetBehavior
 }
 
 func NewLevelZero() (Level, int) {
+	chars := &character.DefaultCharacters
 	return &LevelZero{
-		chars: &character.DefaultCharacters,
+		chars:          chars,
+		targetBehavior: NewCornerTargets(chars),
 	}, levelNumberZero
 }
 
@@ -231,7 +228,7 @@ func (level0 *LevelZero) Restore(state SavedLevel) error {
 func (level0 *LevelZero) initializeGrid() {
 	level0.clearGrid()
 	level0.PlacePlayer(level0.GetStartPosition())
-	level0.updateTargets()
+	level0.targetBehavior.UpdateGrid(level0.grid, level0.targets, level0.currentTarget, level0.chars)
 }
 
 // clearGrid clears the grid
@@ -255,42 +252,14 @@ func (level0 *LevelZero) setDimensions(width, height int) {
 
 // resetTargets resets the Target positions
 func (level0 *LevelZero) resetTargets() {
-	level0.targets = level0.defineTargets()
+	level0.targets = level0.targetBehavior.DefineTargets(level0.width, level0.height)
 	level0.currentTarget = 0
-}
-
-// updateTargets updates the Target positions on the grid
-func (level0 *LevelZero) updateTargets() {
-	for i, target := range level0.targets {
-		switch {
-		case i == level0.currentTarget:
-			level0.grid[target.Position.Y][target.Position.X] = level0.chars.Target.Active.Rune
-		case target.Reached:
-			level0.grid[target.Position.Y][target.Position.X] = level0.chars.Target.Reached.Rune
-		default:
-			level0.grid[target.Position.Y][target.Position.X] = level0.chars.Target.Inactive.Rune
-		}
-	}
-}
-
-// defineTargets defines the Target positions based on the level dimensions
-func (level0 *LevelZero) defineTargets() []Target {
-	// offset targets from the border by 20%
-	offsetX := int(float64(level0.width) * 0.2)
-	offsetY := int(float64(level0.height) * 0.2)
-
-	return []Target{
-		{Position{offsetX, offsetY}, false},                                        // Top left
-		{Position{level0.width - offsetX - 1, offsetY}, false},                     // Top right
-		{Position{offsetX, level0.height - offsetY - 1}, false},                    // Bottom left
-		{Position{level0.width - offsetX - 1, level0.height - offsetY - 1}, false}, // Bottom right
-	}
 }
 
 // replaceTargets replaces the currentTarget targets with the saved targets
 func (level0 *LevelZero) replaceTargets(savedTargets []Target) {
 	// define targets based on currentTarget dimensions
-	targets := level0.defineTargets()
+	targets := level0.targetBehavior.DefineTargets(level0.width, level0.height)
 
 	// transfer the Reached state from the saved targets
 	for i := range targets {
@@ -299,5 +268,5 @@ func (level0 *LevelZero) replaceTargets(savedTargets []Target) {
 		}
 	}
 	level0.targets = targets
-	level0.updateTargets()
+	level0.targetBehavior.UpdateGrid(level0.grid, level0.targets, level0.currentTarget, level0.chars)
 }
