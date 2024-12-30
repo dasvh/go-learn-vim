@@ -26,7 +26,6 @@ type Adventure struct {
 	currentTime      int
 	levelManager     *level.Manager
 	repo             storage.AdventureGameRepository
-	inProgress       bool
 }
 
 // NewAdventure creates a new Adventure instance
@@ -65,7 +64,6 @@ func LoadAdventure(repo storage.AdventureGameRepository, state storage.Adventure
 		levelManager:     levelManager,
 		repo:             repo,
 		size:             size,
-		inProgress:       true,
 	}
 
 	// Calculate scaling factors
@@ -120,10 +118,12 @@ type ScreenParams struct {
 }
 
 func (a *Adventure) initializeLevel() {
-	a.levelManager.InitCurrentLevel(a.gridWidth, a.gridHeight)
+	err := a.levelManager.InitOrResizeLevel(a.gridWidth, a.gridHeight)
+	if err != nil {
+		return
+	}
 	a.levelInfo.SetLevel(a.levelManager.GetLevelNumber())
 	a.gameInstructions.SetInstructions(a.levelManager.GetCurrentLevel().GetInstructions())
-	a.inProgress = true
 }
 
 // Save saves the game state
@@ -138,6 +138,7 @@ func (a *Adventure) Save(repo storage.AdventureGameRepository) error {
 			Targets:        a.levelManager.GetCurrentLevel().GetTargets(),
 			CurrentTarget:  a.levelManager.GetCurrentLevel().GetCurrentTarget(),
 			Completed:      a.levelManager.GetCurrentLevel().IsCompleted(),
+			InProgress:     a.levelManager.GetCurrentLevel().InProgress(),
 		},
 		Stats: game.Stats{
 			KeyPresses:      a.stats.KeyPresses,
@@ -177,10 +178,7 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				view.GetComponentHeight(view.Styles.Adventure.Instructions.Style) +
 				view.GetComponentHeight(view.Styles.Adventure.Map.Border))
 
-			// TODO: figure out how to reinit the level without losing the progress or resetting the player position
-			if !a.inProgress {
-				a.initializeLevel()
-			}
+			a.initializeLevel()
 		}
 	case tea.KeyMsg:
 		keyString := msg.String()

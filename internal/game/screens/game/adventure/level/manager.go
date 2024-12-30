@@ -46,3 +46,27 @@ func (m *Manager) LevelFromSave(state SavedLevel) error {
 
 	return nil
 }
+
+func (m *Manager) InitOrResizeLevel(width, height int) error {
+	current := m.GetCurrentLevel()
+
+	if !current.InProgress() {
+		m.InitCurrentLevel(width, height)
+	} else {
+		params := SavedLevel{
+			Number:         m.levelNumber,
+			Width:          width,
+			Height:         height,
+			PlayerPosition: current.GetCurrentPosition(),
+			Targets:        current.GetTargets(),
+			CurrentTarget:  current.GetCurrentTarget(),
+			Completed:      current.IsCompleted(),
+			InProgress:     current.InProgress(),
+		}
+		if err := current.Restore(params); err != nil {
+			return fmt.Errorf("failed to restore level state: %w", err)
+		}
+	}
+
+	return nil
+}

@@ -17,7 +17,9 @@ type Level interface {
 	GetTargets() []Target
 	GetCurrentTarget() int
 	GetInstructions() string
+	InProgress() bool
 	IsCompleted() bool
+	GetSize() (int, int)
 	Restore(state SavedLevel) error
 }
 
@@ -32,6 +34,7 @@ type SavedLevel struct {
 	Targets        []Target `json:"targets"`
 	CurrentTarget  int      `json:"current_target"`
 	Completed      bool     `json:"completed"`
+	InProgress     bool     `json:"in_progress"`
 }
 
 // Position represents a 2D Position
@@ -64,6 +67,7 @@ type LevelZero struct {
 	completed     bool
 	init          bool
 	restore       bool
+	inProgress    bool
 	chars         *character.Characters
 	movementBlock bool
 	blockEnds     time.Time
@@ -75,14 +79,8 @@ func NewLevelZero() (Level, int) {
 	}, levelNumberZero
 }
 
-func (level0 *LevelZero) initializeGrid() {
-	level0.grid = make([][]rune, level0.height)
-	for y := 0; y < level0.height; y++ {
-		level0.grid[y] = make([]rune, level0.width)
-		for x := 0; x < level0.width; x++ {
-			level0.grid[y][x] = ' '
-		}
-	}
+func (level0 *LevelZero) initializeLevel() {
+	level0.setGridDimensions()
 
 	if level0.restore {
 		level0.PlacePlayer(level0.player)
@@ -92,6 +90,16 @@ func (level0 *LevelZero) initializeGrid() {
 
 	level0.updateTargets()
 	level0.restore = false
+}
+
+func (level0 *LevelZero) setGridDimensions() {
+	level0.grid = make([][]rune, level0.height)
+	for y := 0; y < level0.height; y++ {
+		level0.grid[y] = make([]rune, level0.width)
+		for x := 0; x < level0.width; x++ {
+			level0.grid[y][x] = ' '
+		}
+	}
 }
 
 // updateTargets updates the Target positions on the grid
@@ -139,6 +147,8 @@ func (level0 *LevelZero) replaceTargets(savedTargets []Target) {
 
 // Init initializes the level with the given dimensions
 func (level0 *LevelZero) Init(width, height int) {
+	level0.inProgress = true
+
 	level0.width = width
 	level0.height = height
 
@@ -146,7 +156,7 @@ func (level0 *LevelZero) Init(width, height int) {
 	level0.targets = level0.defineTargets()
 	level0.current = 0
 
-	level0.initializeGrid()
+	level0.initializeLevel()
 }
 
 // UpdatePlayerAction handles player movement and Target completion
@@ -187,6 +197,7 @@ func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 		level0.targets[level0.current].Reached = true
 		if level0.current == len(level0.targets)-1 {
 			level0.completed = true
+			level0.inProgress = false
 			return PlayerActionResult{
 				UpdatedPosition:    level0.GetStartPosition(),
 				Completed:          true,
@@ -196,7 +207,7 @@ func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 		}
 
 		level0.current++
-		level0.initializeGrid()
+		level0.initializeLevel()
 
 		// block movement for 500ms after reaching a Target
 		level0.movementBlock = true
@@ -260,6 +271,16 @@ func (level0 *LevelZero) GetInstructions() string {
 	return fmt.Sprintf("Target %d/%d: Reach the X using hjkl keys", level0.current+1, len(level0.targets))
 }
 
+// GetSize returns the level dimensions
+func (level0 *LevelZero) GetSize() (int, int) {
+	return level0.width, level0.height
+}
+
+// InProgress returns whether the level is in progress
+func (level0 *LevelZero) InProgress() bool {
+	return level0.inProgress
+}
+
 // IsCompleted returns whether the level is completed
 func (level0 *LevelZero) IsCompleted() bool {
 	return level0.completed
@@ -273,6 +294,9 @@ func (level0 *LevelZero) Restore(state SavedLevel) error {
 
 	level0.width = state.Width
 	level0.height = state.Height
+
+	level0.setGridDimensions()
+
 	level0.player = state.PlayerPosition
 	level0.targets = state.Targets
 	level0.current = state.CurrentTarget
@@ -281,8 +305,7 @@ func (level0 *LevelZero) Restore(state SavedLevel) error {
 	level0.restore = true
 
 	level0.replaceTargets(state.Targets)
-
-	level0.initializeGrid()
+	level0.initializeLevel()
 
 	return nil
 }
