@@ -87,7 +87,7 @@ func LoadAdventure(repo storage.AdventureGameRepository, state storage.Adventure
 	state.Level.Width = adventure.gridWidth
 	state.Level.Height = adventure.gridHeight
 
-	if err := adventure.levelManager.LevelFromSave(state.Level); err != nil {
+	if err := adventure.levelManager.RestoreLevel(state.Level); err != nil {
 		return nil, fmt.Errorf("failed to load level state: %w", err)
 	}
 

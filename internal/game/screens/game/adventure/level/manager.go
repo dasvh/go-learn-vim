@@ -27,46 +27,33 @@ func (m *Manager) GetLevelNumber() int {
 	return m.levelNumber
 }
 
-func (m *Manager) LevelFromSave(state SavedLevel) error {
+func (m *Manager) RestoreLevel(state SavedLevel) error {
 	if len(state.Targets) == 0 {
 		return fmt.Errorf("invalid save state: no targets found")
 	}
 
-	m.currentLevel, m.levelNumber = NewLevelZero()
+	level, number := NewLevelZero()
+	m.currentLevel = level
+	m.levelNumber = number
 
-	if state.Width <= 0 || state.Height <= 0 {
-		return fmt.Errorf("invalid dimensions: width=%d height=%d", state.Width, state.Height)
-	}
-
-	m.currentLevel.Init(state.Width, state.Height)
-	err := m.currentLevel.Restore(state)
-	if err != nil {
-		return fmt.Errorf("failed to restore level state: %w", err)
-	}
-
-	return nil
+	return m.currentLevel.Restore(state)
 }
 
 func (m *Manager) InitOrResizeLevel(width, height int) error {
-	current := m.GetCurrentLevel()
-
-	if !current.InProgress() {
+	if !m.currentLevel.InProgress() {
 		m.InitCurrentLevel(width, height)
-	} else {
-		params := SavedLevel{
-			Number:         m.levelNumber,
-			Width:          width,
-			Height:         height,
-			PlayerPosition: current.GetCurrentPosition(),
-			Targets:        current.GetTargets(),
-			CurrentTarget:  current.GetCurrentTarget(),
-			Completed:      current.IsCompleted(),
-			InProgress:     current.InProgress(),
-		}
-		if err := current.Restore(params); err != nil {
-			return fmt.Errorf("failed to restore level state: %w", err)
-		}
+		return nil
 	}
 
-	return nil
+	params := SavedLevel{
+		Number:         m.levelNumber,
+		Width:          width,
+		Height:         height,
+		PlayerPosition: m.currentLevel.GetCurrentPosition(),
+		Targets:        m.currentLevel.GetTargets(),
+		CurrentTarget:  m.currentLevel.GetCurrentTarget(),
+		Completed:      m.currentLevel.IsCompleted(),
+		InProgress:     m.currentLevel.InProgress(),
+	}
+	return m.currentLevel.Restore(params)
 }
