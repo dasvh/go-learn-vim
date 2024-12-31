@@ -2,17 +2,17 @@ package game
 
 // Stats represent the statistics of a game session
 type Stats struct {
-	TotalKeystrokes int
-	KeyPresses      map[string]int
-	Time            int
+	KeyPresses      map[string]int `json:"key_presses"`
+	TotalKeystrokes int            `json:"total_keystrokes"`
+	TimeElapsed     int            `json:"time_elapsed"`
 }
 
 // NewStats creates a new Stats instance
 func NewStats() *Stats {
 	return &Stats{
-		TotalKeystrokes: 0,
 		KeyPresses:      make(map[string]int),
-		Time:            0,
+		TotalKeystrokes: 0,
+		TimeElapsed:     0,
 	}
 }
 
@@ -26,11 +26,11 @@ func (s *Stats) RegisterKey(key string, allowed bool) {
 
 // IncrementTime increments the time counter
 func (s *Stats) IncrementTime() {
-	s.Time++
+	s.TimeElapsed++
 }
 
 // Reset clears all statistics
 func (s *Stats) Reset() {
-	s.TotalKeystrokes = 0
 	s.KeyPresses = make(map[string]int)
+	s.TotalKeystrokes = 0
 }

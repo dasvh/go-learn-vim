@@ -13,7 +13,7 @@ type ViewManager struct {
 // NewManager creates and returns a new ViewManager instance with MainMenuScreen as the default active view
 func NewManager() *ViewManager {
 	return &ViewManager{
-		activeView: AdventureModeScreen,
+		activeView: MainMenuScreen,
 		views:      make(map[GameScreen]tea.Model),
 	}
 }

@@ -1,12 +1,14 @@
 package game
 
 import (
+	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/dasvh/go-learn-vim/internal/game/screens"
 	"github.com/dasvh/go-learn-vim/internal/game/screens/game"
 	"github.com/dasvh/go-learn-vim/internal/game/screens/game/adventure"
 	"github.com/dasvh/go-learn-vim/internal/game/screens/info"
 	"github.com/dasvh/go-learn-vim/internal/game/state"
+	"github.com/dasvh/go-learn-vim/internal/storage"
 )
 
 // Game represents the main game structure which holds the state manager
@@ -18,15 +20,21 @@ type Game struct {
 
 // NewGame initializes a new Game instance with a state manager
 // and registers the respective screens
-func NewGame() *Game {
+func NewGame(repo storage.AdventureGameRepository) *Game {
 	manager := state.NewManager()
 
-	manager.Register(state.MainMenuScreen, screens.NewMainMenu())
+	hasIncompleteGame, err := repo.HasIncompleteGame()
+	if err != nil {
+		fmt.Println("Failed to check for game saves + ", err)
+	}
+
+	manager.Register(state.MainMenuScreen, screens.NewMainMenu(hasIncompleteGame))
+	manager.Register(state.LoadGameScreen, screens.NewLoad(repo))
 	manager.Register(state.InfoMenuScreen, info.NewInfoMenu())
 	manager.Register(state.VimInfoScreen, info.NewVimInfo())
 	manager.Register(state.MotionsInfoScreen, info.NewMotionsInfo())
 	manager.Register(state.NewGameScreen, game.NewModes())
-	manager.Register(state.AdventureModeScreen, adventure.NewAdventure())
+	manager.Register(state.AdventureModeScreen, adventure.NewAdventure(repo))
 
 	return &Game{
 		manager: manager,
@@ -50,6 +58,10 @@ func (g *Game) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
+	// handle screen transitions with model registration
+	case state.ScreenTransitionMsg:
+		g.manager.Register(msg.Screen, msg.Model)
+		return g, g.manager.SwitchTo(msg.Screen)
 	case state.GameScreen:
 		return g, g.manager.SwitchTo(msg)
 	}

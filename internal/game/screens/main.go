@@ -22,11 +22,11 @@ type Main struct {
 }
 
 // NewMainMenu returns a new Main instance
-func NewMainMenu() view.Menu {
+func NewMainMenu(canLoadGame bool) view.Menu {
 	base := view.NewBaseMenu("Main Menu", []view.ButtonConfig{
 		{Label: ButtonInfo},
+		{Label: ButtonLoad, Inactive: !canLoadGame},
 		{Label: ButtonNew},
-		{Label: ButtonLoad, Inactive: true},
 		{Label: ButtonScores, Inactive: true},
 		{Label: ButtonStats, Inactive: true},
 		{Label: ButtonQuit},
@@ -58,6 +58,8 @@ func (m *Main) HandleSelection() tea.Cmd {
 	switch selected.Label {
 	case ButtonInfo:
 		return state.ChangeScreen(state.InfoMenuScreen)
+	case ButtonLoad:
+		return state.ChangeScreen(state.LoadGameScreen)
 	case ButtonNew:
 		return state.ChangeScreen(state.NewGameScreen)
 	case ButtonQuit:
