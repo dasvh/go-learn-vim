@@ -2,7 +2,7 @@ package level
 
 import (
 	"fmt"
-	"github.com/dasvh/go-learn-vim/internal/app/screens/adventure/character"
+	"github.com/dasvh/go-learn-vim/internal/components"
 	"time"
 )
 
@@ -60,14 +60,14 @@ type LevelZero struct {
 	completed      bool
 	restore        bool
 	inProgress     bool
-	chars          *character.Characters
+	chars          *components.Characters
 	movementBlock  bool
 	blockEnds      time.Time
 	targetBehavior TargetBehavior
 }
 
 func NewLevelZero() (Level, int) {
-	chars := &character.DefaultCharacters
+	chars := &components.DefaultCharacters
 	return &LevelZero{
 		chars:          chars,
 		targetBehavior: NewCornerTargets(chars),
@@ -118,7 +118,7 @@ func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 	// check if player has Reached the Target
 	if currentTarget.Position == newPos {
 		level0.targets[level0.currentTarget].Reached = true
-		if level0.currentTarget == len(level0.targets)-1 {
+		if level0.currentTarget == level0.targetBehavior.GetTargetCount()-1 {
 			level0.completed = true
 			level0.inProgress = false
 			return PlayerActionResult{
@@ -193,7 +193,7 @@ func (level0 *LevelZero) GetCurrentTarget() int {
 
 // GetInstructions returns the instructions for the currentTarget level
 func (level0 *LevelZero) GetInstructions() string {
-	return fmt.Sprintf("Target %d/%d: Reach the X using hjkl keys", level0.currentTarget+1, level0.targetBehavior.GetTargetCount())
+	return fmt.Sprintf("Instructions: Target %d/%d: Reach the X using hjkl keys", level0.currentTarget+1, level0.targetBehavior.GetTargetCount())
 }
 
 // InProgress returns whether the level is in progress

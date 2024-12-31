@@ -1,7 +1,7 @@
 package level
 
 import (
-	"github.com/dasvh/go-learn-vim/internal/app/screens/adventure/character"
+	"github.com/dasvh/go-learn-vim/internal/components"
 )
 
 // Target represents a Position and whether it has been Reached
@@ -13,17 +13,17 @@ type Target struct {
 // TargetBehavior defines the behavior of a target
 type TargetBehavior interface {
 	DefineTargets(width, height int) []Target
-	UpdateGrid(grid [][]rune, targets []Target, current int, chars *character.Characters)
+	UpdateGrid(grid [][]rune, targets []Target, current int, chars *components.Characters)
 	GetTargetCount() int
 }
 
 // CornerTargets defines the behavior of a target that is placed in the corners of the screen
 type CornerTargets struct {
-	chars *character.Characters
+	chars *components.Characters
 }
 
 // NewCornerTargets creates a new CornerTargets
-func NewCornerTargets(chars *character.Characters) TargetBehavior {
+func NewCornerTargets(chars *components.Characters) TargetBehavior {
 	return &CornerTargets{chars: chars}
 }
 
@@ -41,7 +41,7 @@ func (ct *CornerTargets) DefineTargets(width, height int) []Target {
 }
 
 // UpdateGrid updates the grid with the targets
-func (ct *CornerTargets) UpdateGrid(grid [][]rune, targets []Target, current int, chars *character.Characters) {
+func (ct *CornerTargets) UpdateGrid(grid [][]rune, targets []Target, current int, chars *components.Characters) {
 	for i, target := range targets {
 		switch {
 		case i == current:
