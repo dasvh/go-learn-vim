@@ -2,13 +2,13 @@ package storage
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/dasvh/go-learn-vim/internal/game/screens/game"
-	"github.com/dasvh/go-learn-vim/internal/game/screens/game/adventure/level"
+	"github.com/dasvh/go-learn-vim/internal/app/screens/adventure/level"
+	"github.com/dasvh/go-learn-vim/internal/app/state"
 )
 
-// AdventureGameState represents the state of an adventure game
+// AdventureGameState represents the state of an adventure app
 type AdventureGameState struct {
 	Size  tea.WindowSizeMsg `json:"size"`
 	Level level.SavedLevel  `json:"level"`
-	Stats game.Stats        `json:"stats"`
+	Stats state.Stats       `json:"stats"`
 }

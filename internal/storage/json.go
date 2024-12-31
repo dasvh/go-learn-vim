@@ -39,7 +39,7 @@ func (repo *JSONRepository) LoadAdventureGame() (AdventureGameState, error) {
 	return state, err
 }
 
-// HasIncompleteGame checks if there is an incomplete game
+// HasIncompleteGame checks if there is an incomplete app
 func (repo *JSONRepository) HasIncompleteGame() (bool, error) {
 	file, err := os.Open(repo.filePath)
 	if err != nil {
