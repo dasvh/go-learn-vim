@@ -1,4 +1,4 @@
-package character
+package components
 
 import (
 	"github.com/charmbracelet/lipgloss"
