@@ -12,6 +12,7 @@ type Target struct {
 type TargetBehavior interface {
 	DefineTargets(width, height int) []Target
 	UpdateGrid(grid [][]rune, targets []Target, current int, chars *character.Characters)
+	GetTargetCount() int
 }
 
 // CornerTargets defines the behavior of a target that is placed in the corners of the screen
@@ -49,4 +50,9 @@ func (ct *CornerTargets) UpdateGrid(grid [][]rune, targets []Target, current int
 			grid[target.Position.Y][target.Position.X] = chars.Target.Inactive.Rune
 		}
 	}
+}
+
+// GetTargetCount returns the number of targets
+func (ct *CornerTargets) GetTargetCount() int {
+	return 4
 }

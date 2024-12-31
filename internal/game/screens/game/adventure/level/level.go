@@ -193,7 +193,7 @@ func (level0 *LevelZero) GetCurrentTarget() int {
 
 // GetInstructions returns the instructions for the currentTarget level
 func (level0 *LevelZero) GetInstructions() string {
-	return fmt.Sprintf("Target %d/%d: Reach the X using hjkl keys", level0.currentTarget+1, len(level0.targets))
+	return fmt.Sprintf("Target %d/%d: Reach the X using hjkl keys", level0.currentTarget+1, level0.targetBehavior.GetTargetCount())
 }
 
 // InProgress returns whether the level is in progress
