@@ -4,7 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/dasvh/go-learn-vim/internal/app/state"
+	"github.com/dasvh/go-learn-vim/internal/app/screens"
 	"github.com/dasvh/go-learn-vim/internal/style"
 	"github.com/dasvh/go-learn-vim/internal/views"
 )
@@ -35,7 +35,7 @@ func (vi *VimInfo) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if key.Matches(msg, vi.Controls().Back) {
-			return vi, state.ChangeScreen(state.InfoMenuScreen)
+			return vi, screens.ChangeScreen(screens.InfoMenuScreen)
 		}
 	}
 

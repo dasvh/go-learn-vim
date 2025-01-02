@@ -1,4 +1,4 @@
-package state
+package screens
 
 import tea "github.com/charmbracelet/bubbletea"
 
@@ -24,6 +24,8 @@ const (
 	CheatsheetInfoScreen
 	// NewGameScreen represents the new app screen
 	NewGameScreen
+	// PlayerSelectionScreen represents the player selection screen
+	PlayerSelectionScreen
 	// LoadGameScreen represents the load app screen
 	LoadGameScreen
 	// AdventureModeScreen represents the adventure app mode screen

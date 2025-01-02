@@ -3,7 +3,7 @@ package menus
 import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/dasvh/go-learn-vim/internal/app/state"
+	"github.com/dasvh/go-learn-vim/internal/app/screens"
 	"github.com/dasvh/go-learn-vim/internal/views"
 )
 
@@ -38,7 +38,7 @@ func (i *Info) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return i, i.HandleSelection()
 		}
 		if key.Matches(msg, i.Controls().Back) {
-			return i, state.ChangeScreen(state.MainMenuScreen)
+			return i, screens.ChangeScreen(screens.MainMenuScreen)
 		}
 	}
 
@@ -54,11 +54,11 @@ func (i *Info) HandleSelection() tea.Cmd {
 
 	switch selected.Label {
 	case ButtonVim:
-		return state.ChangeScreen(state.VimInfoScreen)
+		return screens.ChangeScreen(screens.VimInfoScreen)
 	case ButtonMotions:
-		return state.ChangeScreen(state.MotionsInfoScreen)
+		return screens.ChangeScreen(screens.MotionsInfoScreen)
 	case ButtonCheatsheet:
-		return state.ChangeScreen(state.CheatsheetInfoScreen)
+		return screens.ChangeScreen(screens.CheatsheetInfoScreen)
 	default:
 		return nil
 	}

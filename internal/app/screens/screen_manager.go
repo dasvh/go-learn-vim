@@ -1,4 +1,4 @@
-package state
+package screens
 
 import (
 	tea "github.com/charmbracelet/bubbletea"

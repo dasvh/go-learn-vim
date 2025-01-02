@@ -1,4 +1,4 @@
-package state
+package storage
 
 // Stats represent the statistics of a game
 type Stats struct {
