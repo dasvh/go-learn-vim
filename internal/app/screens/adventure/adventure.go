@@ -5,32 +5,31 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/dasvh/go-learn-vim/internal/app/screens/adventure/level"
-	"github.com/dasvh/go-learn-vim/internal/app/state"
 	"github.com/dasvh/go-learn-vim/internal/storage"
 	"github.com/dasvh/go-learn-vim/internal/views"
 	"time"
 )
 
-const MODE = "Adventure"
+const gameMode = "Adventure"
 
 // Adventure represents the adventure mode
 type Adventure struct {
 	controls     Controls
-	stats        *state.Stats
+	stats        *storage.Stats
 	levelManager *level.Manager
-	repo         storage.AdventureGameRepository
+	repo         storage.GameRepository
 	view         views.AdventureView
 	gridWidth    int
 	gridHeight   int
 }
 
 // NewAdventure creates a new Adventure instance
-func NewAdventure(repo storage.AdventureGameRepository) *Adventure {
+func NewAdventure(repo storage.GameRepository) *Adventure {
 	controls := NewBasicControls()
 	levelManager := level.NewManager()
 
 	view := views.InitializeAdventureView()
-	view.SetMode(MODE)
+	view.SetMode(gameMode)
 	view.SetLevel(levelManager.GetLevelNumber())
 	view.SetStats(0, 0)
 	view.SetInfo(levelManager.GetCurrentLevel().GetInstructions())
@@ -38,61 +37,11 @@ func NewAdventure(repo storage.AdventureGameRepository) *Adventure {
 
 	return &Adventure{
 		controls:     controls,
-		stats:        state.NewStats(),
+		stats:        storage.NewStats(),
 		levelManager: levelManager,
 		repo:         repo,
 		view:         view,
 	}
-}
-
-// LoadAdventure creates a new Adventure instance from a saved app state
-func LoadAdventure(repo storage.AdventureGameRepository, state storage.AdventureGameState, size tea.WindowSizeMsg) (*Adventure, error) {
-	controls := NewBasicControls()
-	levelManager := level.NewManager()
-
-	gameView := views.InitializeAdventureView()
-	gameView.Size = size
-	gameView.SetMode(MODE)
-	gameView.SetLevel(state.Level.Number)
-	gameView.SetStats(state.Stats.TotalKeystrokes, state.Stats.TimeElapsed)
-	gameView.SetInfo(levelManager.GetCurrentLevel().GetInstructions())
-	gameView.Help = controls.BasicHelp()
-
-	adventure := &Adventure{
-		controls:     controls,
-		stats:        &state.Stats,
-		levelManager: levelManager,
-		repo:         repo,
-		view:         gameView,
-	}
-
-	// update the grid dimensions
-	adventure.gridWidth, adventure.gridHeight = adventure.view.UpdateGridDimensions()
-
-	// calculate scaling factors
-	xScale := float64(size.Width) / float64(state.Size.Width)
-	yScale := float64(size.Height) / float64(state.Size.Height)
-
-	// debug info
-	debugString := fmt.Sprintf("size: %+v, xScale: %+v yScale: %+v, state.Size: %+v", size, xScale, yScale, state.Size)
-	adventure.view.SetInfo(debugString)
-
-	// scale the player position based on the new grid dimensions
-	state.Level.PlayerPosition = scalePosition(state.Level.PlayerPosition, xScale, yScale)
-
-	// update the Level.Width and Level.Height
-	state.Level.Width = adventure.gridWidth
-	state.Level.Height = adventure.gridHeight
-
-	if err := adventure.levelManager.RestoreLevel(state.Level); err != nil {
-		return nil, fmt.Errorf("failed to load level state: %w", err)
-	}
-
-	adventure.view.SetLevel(adventure.levelManager.GetLevelNumber())
-	adventure.view.SetStats(adventure.stats.TotalKeystrokes, adventure.stats.TimeElapsed)
-	//adventure.view.SetInfo(adventure.levelManager.GetCurrentLevel().GetInstructions())
-
-	return adventure, nil
 }
 
 // scalePosition scales a position based on the x and y scaling factors
@@ -113,9 +62,9 @@ func (a *Adventure) initializeLevel() {
 }
 
 // Save saves the app gameState
-func (a *Adventure) Save(repo storage.AdventureGameRepository) error {
+func (a *Adventure) Save() error {
 	gameState := storage.AdventureGameState{
-		Size: a.view.Size,
+		WindowSize: a.view.Size,
 		Level: level.SavedLevel{
 			Number:         a.levelManager.GetLevelNumber(),
 			Width:          a.gridWidth,
@@ -126,13 +75,80 @@ func (a *Adventure) Save(repo storage.AdventureGameRepository) error {
 			Completed:      a.levelManager.GetCurrentLevel().IsCompleted(),
 			InProgress:     a.levelManager.GetCurrentLevel().InProgress(),
 		},
-		Stats: state.Stats{
+		Stats: storage.Stats{
 			KeyPresses:      a.stats.KeyPresses,
 			TotalKeystrokes: a.stats.TotalKeystrokes,
 			TimeElapsed:     a.stats.TimeElapsed,
 		},
 	}
-	return repo.SaveAdventureGame(gameState)
+
+	gameSave := storage.GameSave{
+		ID:        "0",
+		Player:    storage.Player{ID: "0", Name: "Player"},
+		Timestamp: time.Now(),
+		GameMode:  gameMode,
+		GameState: gameState,
+	}
+
+	// todo: should not call repo directly but call a service that calls the repo
+
+	return a.repo.SaveGame(gameSave)
+}
+
+// Load creates a new Adventure instance from a saved app controllers
+func Load(repo storage.GameRepository, gameState storage.GameState, size tea.WindowSizeMsg) (*Adventure, error) {
+	// Ensure the GameState is of the correct type
+	ags, ok := gameState.(storage.AdventureGameState)
+	if !ok {
+		return nil, fmt.Errorf("invalid game controllers type: expected AdventureGameState")
+	}
+
+	controls := NewBasicControls()
+	levelManager := level.NewManager()
+
+	gameView := views.InitializeAdventureView()
+	gameView.Size = size
+	gameView.SetMode(gameMode)
+	gameView.SetLevel(ags.Level.Number)
+	gameView.SetStats(ags.Stats.TotalKeystrokes, ags.Stats.TimeElapsed)
+	gameView.SetInfo(levelManager.GetCurrentLevel().GetInstructions())
+	gameView.Help = controls.BasicHelp()
+
+	adventure := &Adventure{
+		controls:     controls,
+		stats:        &ags.Stats,
+		levelManager: levelManager,
+		repo:         repo,
+		view:         gameView,
+	}
+
+	// update the grid dimensions
+	adventure.gridWidth, adventure.gridHeight = adventure.view.UpdateGridDimensions()
+
+	// calculate scaling factors
+	xScale := float64(size.Width) / float64(ags.WindowSize.Width)
+	yScale := float64(size.Height) / float64(ags.WindowSize.Height)
+
+	// debug info
+	debugString := fmt.Sprintf("size: %+v, xScale: %+v yScale: %+v, gameSave.size: %+v", size, xScale, yScale, ags.WindowSize)
+	adventure.view.SetInfo(debugString)
+
+	// scale the player position based on the new grid dimensions
+	ags.Level.PlayerPosition = scalePosition(ags.Level.PlayerPosition, xScale, yScale)
+
+	// update the Level.Width and Level.Height
+	ags.Level.Width = adventure.gridWidth
+	ags.Level.Height = adventure.gridHeight
+
+	if err := adventure.levelManager.RestoreLevel(ags.Level); err != nil {
+		return nil, fmt.Errorf("failed to load level gameSave: %w", err)
+	}
+
+	adventure.view.SetLevel(adventure.levelManager.GetLevelNumber())
+	adventure.view.SetStats(adventure.stats.TotalKeystrokes, adventure.stats.TimeElapsed)
+	//adventure.view.SetInfo(adventure.levelManager.GetCurrentLevel().GetInstructions())
+
+	return adventure, nil
 }
 
 // TickMsg represents a tick message
@@ -177,10 +193,10 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			isMotionKey = true
 			delta = level.Position{X: 0, Y: 1}
 		case key.Matches(msg, a.controls.Quit):
-			// save the app state before quitting
-			err := a.Save(a.repo)
+			// save the app controllers before quitting
+			err := a.Save()
 			if err != nil {
-				fmt.Println("Failed to save app state:", err)
+				fmt.Println("Failed to save app controllers:", err)
 			}
 			return a, tea.Quit
 		}
@@ -193,10 +209,10 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.view.SetInfo(result.InstructionMessage)
 		}
 		if result.Completed {
-			// save the app state after completing the level
-			err := a.Save(a.repo)
+			// save the app controllers after completing the level
+			err := a.Save()
 			if err != nil {
-				fmt.Println("Failed to save app state:", err)
+				fmt.Println("Failed to save app controllers:", err)
 			}
 
 			return a, tea.Quit
