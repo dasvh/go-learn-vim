@@ -2,61 +2,124 @@ package storage
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
-// JSONRepository stores the AdventureGameState in a JSON file
+// JSONRepository stores the data in a JSON file
 type JSONRepository struct {
 	filePath string
+	data     struct {
+		Players []Player   `json:"players"`
+		Saves   []GameSave `json:"saves"`
+	}
 }
 
 // NewJSONRepository creates a new JSONRepository
-func NewJSONRepository(filePath string) *JSONRepository {
-	return &JSONRepository{filePath: filePath}
+func NewJSONRepository(filePath string) (*JSONRepository, error) {
+	repo := &JSONRepository{filePath: filePath}
+
+	if _, err := os.Stat(filePath); err == nil {
+		file, err := os.Open(filePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open file: %w", err)
+		}
+		defer file.Close()
+
+		if err := json.NewDecoder(file).Decode(&repo.data); err != nil {
+			return nil, fmt.Errorf("failed to decode JSON: %w", err)
+		}
+	}
+
+	return repo, nil
 }
 
-// SaveAdventureGame saves the AdventureGameState to a JSON file
-func (repo *JSONRepository) SaveAdventureGame(state AdventureGameState) error {
+// save writes the repository data to the JSON file
+func (repo *JSONRepository) save() error {
 	file, err := os.Create(repo.filePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create file: %w", err)
 	}
 	defer file.Close()
 
-	return json.NewEncoder(file).Encode(state)
+	return json.NewEncoder(file).Encode(repo.data)
 }
 
-// LoadAdventureGame loads the AdventureGameState from a JSON file
-func (repo *JSONRepository) LoadAdventureGame() (AdventureGameState, error) {
-	file, err := os.Open(repo.filePath)
-	if err != nil {
-		return AdventureGameState{}, err
-	}
-	defer file.Close()
-
-	var state AdventureGameState
-	err = json.NewDecoder(file).Decode(&state)
-	return state, err
+// AddPlayer adds a new player to the repository
+func (repo *JSONRepository) AddPlayer(player Player) error {
+	repo.data.Players = append(repo.data.Players, player)
+	return repo.save()
 }
 
-// HasIncompleteGame checks if there is an incomplete app
-func (repo *JSONRepository) HasIncompleteGame() (bool, error) {
-	file, err := os.Open(repo.filePath)
-	if err != nil {
-		// if the file doesn't exist, return false without an error
-		if os.IsNotExist(err) {
-			return false, nil
+// Players returns all players in the repository
+func (repo *JSONRepository) Players() ([]Player, error) {
+	return repo.data.Players, nil
+}
+
+// SaveGame saves a game to the repository
+func (repo *JSONRepository) SaveGame(save GameSave) error {
+	for i, s := range repo.data.Saves {
+		if s.ID == save.ID {
+			repo.data.Saves[i] = save
+			return repo.save()
 		}
-		return false, err
+	}
+	repo.data.Saves = append(repo.data.Saves, save)
+	return repo.save()
+}
+
+// LoadGame loads a game from the repository
+func (repo *JSONRepository) LoadGame(gameID string) (GameSave, error) {
+	for _, save := range repo.data.Saves {
+		if save.ID == gameID {
+			return save, nil
+		}
+	}
+
+	return GameSave{}, fmt.Errorf("game with ID %s not found", gameID)
+}
+
+// HasIncompleteGames returns whether there are any incomplete games
+func (repo *JSONRepository) HasIncompleteGames() (bool, error) {
+	file, err := os.Open(repo.filePath)
+	if err != nil {
+		return false, fmt.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close()
 
-	var state AdventureGameState
-	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&state)
-	if err != nil {
-		return false, err
+	for _, save := range repo.data.Saves {
+		if !save.GameState.IsCompleted() {
+			return true, nil
+		}
 	}
 
-	return !state.Level.Completed, nil
+	return false, nil
+}
+
+// IncompleteGames returns all incomplete games
+func (repo *JSONRepository) IncompleteGames() ([]GameSave, error) {
+	var incomplete []GameSave
+	for _, save := range repo.data.Saves {
+		if !save.GameState.IsCompleted() {
+			incomplete = append(incomplete, save)
+		}
+	}
+
+	return incomplete, nil
+}
+
+// LoadGameState loads a specific GameState from the repository
+func (repo *JSONRepository) LoadGameState(gameID string) (GameState, error) {
+	for _, save := range repo.data.Saves {
+		if save.ID == gameID {
+			// Deserialize the specific GameState type
+			switch save.GameState.(type) {
+			case AdventureGameState:
+				return save.GameState.(AdventureGameState), nil
+			default:
+				return nil, fmt.Errorf("unsupported game controllers mode")
+			}
+		}
+	}
+	return nil, fmt.Errorf("game with ID %s not found", gameID)
 }
