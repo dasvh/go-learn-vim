@@ -10,4 +10,7 @@ type GameRepository interface {
 	IncompleteGames() ([]GameSave, error)
 
 	LoadGameState(gameID string) (GameState, error)
+
+	LifetimeStats() (*LifetimeStats, error)
+	PlayerLifetimeStats(playerID string) (*LifetimeStats, error)
 }

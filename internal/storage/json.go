@@ -123,3 +123,31 @@ func (repo *JSONRepository) LoadGameState(gameID string) (GameState, error) {
 	}
 	return nil, fmt.Errorf("game with ID %s not found", gameID)
 }
+
+// LifetimeStats computes aggregated stats across all game saves
+func (repo *JSONRepository) LifetimeStats() (*LifetimeStats, error) {
+	lifetimeStats := NewLifetimeStats()
+
+	for _, save := range repo.data.Saves {
+		if adventureState, ok := save.GameState.(AdventureGameState); ok {
+			lifetimeStats.Merge(adventureState.Stats)
+		}
+	}
+
+	return lifetimeStats, nil
+}
+
+// PlayerLifetimeStats computes stats for a specific player
+func (repo *JSONRepository) PlayerLifetimeStats(playerID string) (*LifetimeStats, error) {
+	lifetimeStats := NewLifetimeStats()
+
+	for _, save := range repo.data.Saves {
+		if save.Player.ID == playerID {
+			if adventureState, ok := save.GameState.(AdventureGameState); ok {
+				lifetimeStats.Merge(adventureState.Stats)
+			}
+		}
+	}
+
+	return lifetimeStats, nil
+}

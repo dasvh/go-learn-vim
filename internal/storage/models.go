@@ -80,3 +80,29 @@ func (gs *GameSave) MarshalJSON() ([]byte, error) {
 	}
 	return json.Marshal(aux)
 }
+
+// LifetimeStats represents aggregated statistics for all games
+type LifetimeStats struct {
+	TotalKeystrokes int            `json:"total_keystrokes"`
+	TotalPlaytime   int            `json:"total_playtime"`
+	KeyPresses      map[string]int `json:"key_presses"`
+}
+
+// NewLifetimeStats initializes an empty LifetimeStats
+func NewLifetimeStats() *LifetimeStats {
+	return &LifetimeStats{
+		TotalKeystrokes: 0,
+		TotalPlaytime:   0,
+		KeyPresses:      make(map[string]int),
+	}
+}
+
+// Merge aggregates stats from another Stats instance
+func (ls *LifetimeStats) Merge(stats Stats) {
+	ls.TotalKeystrokes += stats.TotalKeystrokes
+	ls.TotalPlaytime += stats.TimeElapsed
+
+	for key, count := range stats.KeyPresses {
+		ls.KeyPresses[key] += count
+	}
+}
