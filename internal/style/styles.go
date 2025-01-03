@@ -78,6 +78,43 @@ type Player struct {
 	Trail  lipgloss.Style
 }
 
+const itemIndicator = "•"
+const selectedItemIndicator = "▸"
+
+var PlayerSelection = struct {
+	Title        lipgloss.Style
+	Item         lipgloss.Style
+	SelectedItem lipgloss.Style
+	FilterMatch  lipgloss.Style
+	DimmedItem   lipgloss.Style
+}{
+	Title: lipgloss.NewStyle().
+		Foreground(theme.Primary).
+		Background(colours.DarkBlue).
+		PaddingLeft(3).
+		PaddingRight(3).
+		Bold(true),
+	Item: lipgloss.NewStyle().
+		Foreground(colours.Pink).
+		BorderLeft(true).
+		BorderStyle(lipgloss.Border{Left: itemIndicator}).
+		BorderForeground(colours.Pink).
+		MarginLeft(2).
+		PaddingLeft(1),
+	SelectedItem: lipgloss.NewStyle().
+		Foreground(colours.Green).
+		BorderLeft(true).
+		BorderStyle(lipgloss.Border{Left: selectedItemIndicator}).
+		BorderForeground(colours.Green).
+		MarginLeft(2).
+		PaddingLeft(2).
+		Bold(true),
+	FilterMatch: lipgloss.NewStyle().
+		Foreground(colours.Green),
+	DimmedItem: lipgloss.NewStyle().
+		Foreground(colours.Grey),
+}
+
 // Styles defines the styling configuration for views components
 var Styles = struct {
 	Title    lipgloss.Style
