@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dasvh/go-learn-vim/internal/storage"
 	"github.com/google/uuid"
+	"time"
 )
 
 // Game is a controller for game related actions
@@ -49,14 +50,6 @@ func (g *Game) SetPlayer(player storage.Player) {
 	g.currentPlayer = &player
 }
 
-// CurrentPlayer returns the current player
-func (g *Game) CurrentPlayer() (*storage.Player, error) {
-	if g.currentPlayer == nil {
-		return nil, fmt.Errorf("no player selected")
-	}
-	return g.currentPlayer, nil
-}
-
 // SaveGame saves the current game state
 func (g *Game) SaveGame(mode string, gameState storage.GameState) error {
 	if g.currentPlayer == nil {
@@ -66,6 +59,7 @@ func (g *Game) SaveGame(mode string, gameState storage.GameState) error {
 	gameSave := storage.GameSave{
 		ID:        uuid.NewString(),
 		Player:    *g.currentPlayer,
+		Timestamp: time.Now(),
 		GameMode:  mode,
 		GameState: gameState,
 	}
