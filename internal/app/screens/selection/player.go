@@ -94,7 +94,11 @@ func (ps *PlayerSelection) handleSelect(item cl.Item) tea.Cmd {
 	for _, player := range ps.players {
 		if player.Name == item.Name {
 			ps.gc.SetPlayer(player)
-			return screens.ChangeScreen(ps.gameScreen)
+			// return a batch command to change the screen and set the player
+			return tea.Batch(
+				screens.ChangeScreen(ps.gameScreen),
+				func() tea.Msg { return screens.SetPlayerMsg{Player: player} },
+			)
 		}
 	}
 	return nil
