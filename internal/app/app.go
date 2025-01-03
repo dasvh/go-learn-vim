@@ -3,37 +3,41 @@ package app
 import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/dasvh/go-learn-vim/internal/app/controllers"
+	"github.com/dasvh/go-learn-vim/internal/app/screens"
 	"github.com/dasvh/go-learn-vim/internal/app/screens/adventure"
 	"github.com/dasvh/go-learn-vim/internal/app/screens/info"
 	"github.com/dasvh/go-learn-vim/internal/app/screens/menus"
-	"github.com/dasvh/go-learn-vim/internal/app/state"
+	"github.com/dasvh/go-learn-vim/internal/app/screens/selection"
 	"github.com/dasvh/go-learn-vim/internal/storage"
 )
 
-// App represents the main app structure which holds the state manager
+// App represents the main app structure which holds the screen manager
 // and the window size message
 type App struct {
-	manager *state.ScreenManager
+	manager *screens.ScreenManager
 	size    tea.WindowSizeMsg
 }
 
-// NewApp initializes a new App instance with a state manager
+// NewApp initializes a new App instance with a screen manager
 // and registers the respective screens
-func NewApp(repo storage.AdventureGameRepository) *App {
-	manager := state.NewManager()
+func NewApp(repo storage.GameRepository) *App {
+	manager := screens.NewManager()
+	gc := controllers.NewGame(repo)
 
-	hasIncompleteGame, err := repo.HasIncompleteGame()
+	hasIncompleteGame, err := repo.HasIncompleteGames()
 	if err != nil {
 		fmt.Println("Failed to check for app saves + ", err)
 	}
 
-	manager.Register(state.MainMenuScreen, menus.NewMainMenu(hasIncompleteGame))
-	manager.Register(state.LoadGameScreen, menus.NewLoad(repo))
-	manager.Register(state.InfoMenuScreen, menus.NewInfoMenu())
-	manager.Register(state.VimInfoScreen, info.NewVimInfo())
-	manager.Register(state.MotionsInfoScreen, info.NewMotionsInfo())
-	manager.Register(state.NewGameScreen, menus.NewGameModes())
-	manager.Register(state.AdventureModeScreen, adventure.NewAdventure(repo))
+	manager.Register(screens.MainMenuScreen, menus.NewMainMenu(hasIncompleteGame))
+	manager.Register(screens.LoadGameScreen, menus.NewLoad(repo))
+	manager.Register(screens.InfoMenuScreen, menus.NewInfoMenu())
+	manager.Register(screens.VimInfoScreen, info.NewVimInfo())
+	manager.Register(screens.MotionsInfoScreen, info.NewMotionsInfo())
+	manager.Register(screens.NewGameScreen, menus.NewGameModes())
+	manager.Register(screens.PlayerSelectionScreen, selection.NewPlayerSelection(gc, screens.NewGameScreen))
+	manager.Register(screens.AdventureModeScreen, adventure.NewAdventure(repo))
 
 	return &App{
 		manager: manager,
@@ -58,10 +62,10 @@ func (g *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	// handle screen transitions with model registration
-	case state.ScreenTransitionMsg:
+	case screens.ScreenTransitionMsg:
 		g.manager.Register(msg.Screen, msg.Model)
 		return g, g.manager.SwitchTo(msg.Screen)
-	case state.Screen:
+	case screens.Screen:
 		return g, g.manager.SwitchTo(msg)
 	}
 

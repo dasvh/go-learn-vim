@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/dasvh/go-learn-vim/internal/app/screens"
 	"github.com/dasvh/go-learn-vim/internal/app/screens/adventure"
-	"github.com/dasvh/go-learn-vim/internal/app/state"
 	"github.com/dasvh/go-learn-vim/internal/storage"
 	"github.com/dasvh/go-learn-vim/internal/views"
 )
@@ -17,12 +17,12 @@ const (
 // Load represents the load game screen
 type Load struct {
 	*views.MenuView
-	repo storage.AdventureGameRepository
+	repo storage.GameRepository
 	size tea.WindowSizeMsg
 }
 
 // NewLoad creates a new load game screen
-func NewLoad(repo storage.AdventureGameRepository) views.Menu {
+func NewLoad(repo storage.GameRepository) views.Menu {
 	base := views.NewBaseMenu("Load Game", []views.ButtonConfig{
 		{Label: ButtonLoadSelection},
 	})
@@ -32,26 +32,27 @@ func NewLoad(repo storage.AdventureGameRepository) views.Menu {
 // LoadAdventureGame loads the saved app and returns a command to transition to the adventure mode screen
 func (l *Load) LoadAdventureGame() tea.Cmd {
 	return func() tea.Msg {
-		hasIncompleteGame, err := l.repo.HasIncompleteGame()
+		hasIncompleteGame, err := l.repo.HasIncompleteGames()
 		if !hasIncompleteGame || err != nil {
 			fmt.Println("No save file found")
-			return state.ChangeScreen(state.MainMenuScreen)
+			return screens.ChangeScreen(screens.MainMenuScreen)
 		}
 
-		loadedGame, err := l.repo.LoadAdventureGame()
+		// load game state
+		gameState, err := l.repo.LoadGameState("0") // Replace "0" with actual game ID
 		if err != nil {
-			fmt.Printf("Failed to load saved app: %v\n", err)
-			return state.ChangeScreen(state.MainMenuScreen)
+			fmt.Printf("Failed to load saved game controllers: %v\n", err)
+			return screens.ChangeScreen(screens.MainMenuScreen)
 		}
 
-		loadedAdventure, err := adventure.LoadAdventure(l.repo, loadedGame, l.size)
+		loadedAdventure, err := adventure.Load(l.repo, gameState, l.size)
 		if err != nil {
-			fmt.Printf("Failed to load saved app: %v\n", err)
-			return state.ChangeScreen(state.MainMenuScreen)
+			fmt.Printf("Failed to initialize adventure: %v\n", err)
+			return screens.ChangeScreen(screens.MainMenuScreen)
 		}
 
-		return state.ScreenTransitionMsg{
-			Screen: state.AdventureModeScreen,
+		return screens.ScreenTransitionMsg{
+			Screen: screens.AdventureModeScreen,
 			Model:  loadedAdventure,
 		}
 	}
@@ -71,7 +72,7 @@ func (l *Load) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return l, l.HandleSelection()
 		}
 		if key.Matches(msg, l.Controls().Back) {
-			return l, state.ChangeScreen(state.MainMenuScreen)
+			return l, screens.ChangeScreen(screens.MainMenuScreen)
 		}
 	}
 	return l, cmd

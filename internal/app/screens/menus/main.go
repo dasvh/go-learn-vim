@@ -3,7 +3,7 @@ package menus
 import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/dasvh/go-learn-vim/internal/app/state"
+	"github.com/dasvh/go-learn-vim/internal/app/screens"
 	"github.com/dasvh/go-learn-vim/internal/views"
 )
 
@@ -57,11 +57,11 @@ func (m *Main) HandleSelection() tea.Cmd {
 
 	switch selected.Label {
 	case ButtonInfo:
-		return state.ChangeScreen(state.InfoMenuScreen)
+		return screens.ChangeScreen(screens.InfoMenuScreen)
 	case ButtonLoad:
-		return state.ChangeScreen(state.LoadGameScreen)
+		return screens.ChangeScreen(screens.LoadGameScreen)
 	case ButtonNew:
-		return state.ChangeScreen(state.NewGameScreen)
+		return screens.ChangeScreen(screens.PlayerSelectionScreen)
 	case ButtonQuit:
 		return tea.Quit
 	default:

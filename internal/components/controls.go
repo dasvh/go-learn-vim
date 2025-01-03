@@ -17,19 +17,19 @@ func NewControls() Controls {
 	return Controls{
 		Up: key.NewBinding(
 			key.WithKeys("k", "up"),
-			key.WithHelp("k,↑", "move up")),
+			key.WithHelp("↑/k", "move up")),
 		Down: key.NewBinding(
 			key.WithKeys("j", "down"),
-			key.WithHelp("j,↓", "move down")),
+			key.WithHelp("↓/j", "move down")),
 		Select: key.NewBinding(
 			key.WithKeys("l", "right", "enter"),
-			key.WithHelp("l,→,⏎", "select")),
+			key.WithHelp("→/l/⏎", "select")),
 		Back: key.NewBinding(
 			key.WithKeys("h", "left", "esc"),
-			key.WithHelp("h,←,esc", "go back")),
+			key.WithHelp("←/h/esc", "go back")),
 		Quit: key.NewBinding(
 			key.WithKeys("q", "ctrl+c"),
-			key.WithHelp("q", "quit")),
+			key.WithHelp("q/ctrl+c", "quit")),
 	}
 }
 

@@ -24,7 +24,7 @@ type Level interface {
 
 const levelNumberZero = 0
 
-// SavedLevel represents the state of a saved level
+// SavedLevel represents a saved level
 type SavedLevel struct {
 	Number         int      `json:"number"`
 	Width          int      `json:"width"`
@@ -206,7 +206,7 @@ func (level0 *LevelZero) IsCompleted() bool {
 	return level0.completed
 }
 
-// Restore restores the level state from a saved state
+// Restore a SavedLevel from a game state
 func (level0 *LevelZero) Restore(state SavedLevel) error {
 	if state.Width <= 0 || state.Height <= 0 {
 		return fmt.Errorf("invalid dimensions in save state")
