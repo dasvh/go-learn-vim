@@ -9,8 +9,8 @@ import (
 
 const (
 	ButtonInfo   = "Info"
-	ButtonNew    = "New Game"
 	ButtonLoad   = "Load Game"
+	ButtonNew    = "New Game"
 	ButtonScores = "Scores"
 	ButtonStats  = "Stats"
 	ButtonQuit   = "Quit"
@@ -28,7 +28,7 @@ func NewMainMenu(canLoadGame bool) views.Menu {
 		{Label: ButtonLoad, Inactive: !canLoadGame},
 		{Label: ButtonNew},
 		{Label: ButtonScores, Inactive: true},
-		{Label: ButtonStats, Inactive: true},
+		{Label: ButtonStats},
 		{Label: ButtonQuit},
 	})
 	return &Main{MenuView: base}
@@ -37,7 +37,6 @@ func NewMainMenu(canLoadGame bool) views.Menu {
 // Update handles state updates based on incoming messages
 func (m *Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	_, cmd := m.MenuView.Update(msg)
-
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if key.Matches(msg, m.Controls().Select) {
@@ -62,6 +61,10 @@ func (m *Main) HandleSelection() tea.Cmd {
 		return screens.ChangeScreen(screens.LoadGameScreen)
 	case ButtonNew:
 		return screens.ChangeScreen(screens.PlayerSelectionScreen)
+	case ButtonScores:
+		return nil
+	case ButtonStats:
+		return screens.ChangeScreen(screens.StatsScreen)
 	case ButtonQuit:
 		return tea.Quit
 	default:

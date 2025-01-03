@@ -38,6 +38,8 @@ const (
 	LoadGameScreen
 	// AdventureModeScreen represents the adventure app mode screen
 	AdventureModeScreen
+	// StatsScreen represents the stats screen
+	StatsScreen
 )
 
 // ChangeScreen returns a command to change the current screen to the specified screen
