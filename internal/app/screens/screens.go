@@ -1,6 +1,9 @@
 package screens
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/dasvh/go-learn-vim/internal/storage"
+)
 
 // Screen represents the different screens available in the app
 type Screen uint8
@@ -9,6 +12,11 @@ type Screen uint8
 type ScreenTransitionMsg struct {
 	Screen Screen
 	Model  tea.Model
+}
+
+// SetPlayerMsg represents a message to set the player for the game modes
+type SetPlayerMsg struct {
+	Player storage.Player
 }
 
 const (

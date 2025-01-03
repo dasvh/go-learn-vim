@@ -31,13 +31,13 @@ func NewApp(repo storage.GameRepository) *App {
 	}
 
 	manager.Register(screens.MainMenuScreen, menus.NewMainMenu(hasIncompleteGame))
-	manager.Register(screens.LoadGameScreen, menus.NewLoad(repo))
+	manager.Register(screens.LoadGameScreen, menus.NewLoad(repo, gc))
 	manager.Register(screens.InfoMenuScreen, menus.NewInfoMenu())
 	manager.Register(screens.VimInfoScreen, info.NewVimInfo())
 	manager.Register(screens.MotionsInfoScreen, info.NewMotionsInfo())
 	manager.Register(screens.NewGameScreen, menus.NewGameModes())
 	manager.Register(screens.PlayerSelectionScreen, selection.NewPlayerSelection(gc, screens.NewGameScreen))
-	manager.Register(screens.AdventureModeScreen, adventure.NewAdventure(repo))
+	manager.Register(screens.AdventureModeScreen, adventure.NewAdventure(repo, gc))
 
 	return &App{
 		manager: manager,
@@ -61,6 +61,12 @@ func (g *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
+	// pass the player from the player selection screen to the adventure mode screen
+	case screens.SetPlayerMsg:
+		if model, ok := g.manager.Screens()[screens.AdventureModeScreen].(*adventure.Adventure); ok {
+			model.Update(msg)
+		}
+		return g, nil
 	// handle screen transitions with model registration
 	case screens.ScreenTransitionMsg:
 		g.manager.Register(msg.Screen, msg.Model)

@@ -24,6 +24,7 @@ type GameMap struct {
 type AdventureView struct {
 	Size    tea.WindowSizeMsg
 	Level   components.TextDisplay
+	Player  components.TextDisplay
 	Mode    components.TextDisplay
 	Stats   components.TextDisplay
 	Info    components.TextDisplay
@@ -35,6 +36,9 @@ type AdventureView struct {
 func InitializeAdventureView() AdventureView {
 	return AdventureView{
 		Level: components.TextDisplay{
+			Style: style.Styles.Adventure.Header.Level,
+		},
+		Player: components.TextDisplay{
 			Style: style.Styles.Adventure.Header.Level,
 		},
 		Mode: components.TextDisplay{
@@ -71,9 +75,9 @@ func (av *AdventureView) RenderScreen() string {
 	topBorderWidth := style.GetComponentWidth(style.Styles.Adventure.Header.Border)
 	gameMapBorderWidth := style.GetComponentWidth(av.GameMap.Border)
 
-	sections := []components.TextDisplay{av.Level, av.Mode, av.Stats}
-	widths := calculateSectionWidths(av.Size.Width, topBorderWidth, 3)
-	positions := []lipgloss.Position{lipgloss.Left, lipgloss.Center, lipgloss.Right}
+	sections := []components.TextDisplay{av.Level, av.Player, av.Mode, av.Stats}
+	widths := calculateSectionWidths(av.Size.Width, topBorderWidth, 4)
+	positions := []lipgloss.Position{lipgloss.Left, lipgloss.Top, lipgloss.Center, lipgloss.Right}
 
 	topBar := renderTopBar(sections, widths, positions, style.Styles.Adventure.Header.Border)
 	levelInstructions := av.Info.Render()
@@ -92,6 +96,11 @@ func (av *AdventureView) RenderScreen() string {
 // SetLevel sets the level text
 func (av *AdventureView) SetLevel(level int) {
 	av.Level.SetText("Level: %d", level)
+}
+
+// SetPlayer sets the player text
+func (av *AdventureView) SetPlayer(player string) {
+	av.Player.SetText("Player: %s", player)
 }
 
 // SetMode sets the mode text
