@@ -128,9 +128,16 @@ func (repo *JSONRepository) LoadGameState(gameID string) (GameState, error) {
 func (repo *JSONRepository) LifetimeStats() (*LifetimeStats, error) {
 	lifetimeStats := NewLifetimeStats()
 
+	uniqueGames := make(map[string]struct{}) // Track unique game IDs
+
 	for _, save := range repo.data.Saves {
 		if adventureState, ok := save.GameState.(AdventureGameState); ok {
 			lifetimeStats.Merge(adventureState.Stats)
+
+			if _, exists := uniqueGames[save.ID]; !exists {
+				uniqueGames[save.ID] = struct{}{}
+				lifetimeStats.TotalGames++
+			}
 		}
 	}
 
@@ -145,6 +152,7 @@ func (repo *JSONRepository) PlayerLifetimeStats(playerID string) (*LifetimeStats
 		if save.Player.ID == playerID {
 			if adventureState, ok := save.GameState.(AdventureGameState); ok {
 				lifetimeStats.Merge(adventureState.Stats)
+				lifetimeStats.TotalGames++
 			}
 		}
 	}

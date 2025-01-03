@@ -85,6 +85,7 @@ func (gs *GameSave) MarshalJSON() ([]byte, error) {
 type LifetimeStats struct {
 	TotalKeystrokes int            `json:"total_keystrokes"`
 	TotalPlaytime   int            `json:"total_playtime"`
+	TotalGames      int            `json:"total_games"`
 	KeyPresses      map[string]int `json:"key_presses"`
 }
 
@@ -93,6 +94,7 @@ func NewLifetimeStats() *LifetimeStats {
 	return &LifetimeStats{
 		TotalKeystrokes: 0,
 		TotalPlaytime:   0,
+		TotalGames:      0,
 		KeyPresses:      make(map[string]int),
 	}
 }
