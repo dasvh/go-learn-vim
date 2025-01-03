@@ -50,28 +50,6 @@ func NewSelectionView(
 // SelectionControls returns the selection controls
 func (sv *SelectionView) SelectionControls() cl.SelectionControls { return sv.controls }
 
-// InFilterMode returns true if the list is in filter mode
-func (sv *SelectionView) InFilterMode() bool {
-	return sv.List.IsFiltering()
-}
-
-// handleKeyPress handles key presses for the selection view
-func (sv *SelectionView) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch {
-	case key.Matches(msg, sv.controls.Select) && !sv.InFilterMode():
-		if selected, ok := sv.List.SelectedItem().(cl.Item); ok {
-			return sv, sv.onSelect(selected)
-		}
-	case key.Matches(msg, sv.InsertControls.Insert) && !sv.InFilterMode():
-		if sv.TextInput != nil && sv.onInsert != nil {
-			return sv, sv.onInsert()
-		}
-	case key.Matches(msg, sv.controls.Quit) && !sv.InFilterMode():
-		return sv, tea.Quit
-	}
-	return sv, nil
-}
-
 func (sv *SelectionView) Init() tea.Cmd { return nil }
 
 func (sv *SelectionView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -80,14 +58,14 @@ func (sv *SelectionView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		sv.size = msg
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, sv.controls.Select) && !sv.InFilterMode():
+		case key.Matches(msg, sv.controls.Select) && !sv.List.IsFiltering():
 			selected := sv.List.SelectedItem().(cl.Item)
 			return sv, sv.onSelect(selected)
-		case key.Matches(msg, sv.InsertControls.Insert) && !sv.InFilterMode():
+		case key.Matches(msg, sv.InsertControls.Insert) && !sv.List.IsFiltering():
 			if sv.onInsert != nil {
 				return sv, sv.onInsert()
 			}
-		case key.Matches(msg, sv.controls.Quit) && !sv.InFilterMode():
+		case key.Matches(msg, sv.controls.Quit) && !sv.List.IsFiltering():
 			return sv, tea.Quit
 		}
 	}
