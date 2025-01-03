@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/dasvh/go-learn-vim/internal/app/controllers"
+	"github.com/dasvh/go-learn-vim/internal/app/screens"
 	"github.com/dasvh/go-learn-vim/internal/app/screens/adventure/level"
 	"github.com/dasvh/go-learn-vim/internal/storage"
 	"github.com/dasvh/go-learn-vim/internal/views"
@@ -17,17 +19,16 @@ type Adventure struct {
 	controls     Controls
 	stats        *storage.Stats
 	levelManager *level.Manager
-	repo         storage.GameRepository
+	gc           *controllers.Game
 	view         views.AdventureView
 	gridWidth    int
 	gridHeight   int
 }
 
 // NewAdventure creates a new Adventure instance
-func NewAdventure(repo storage.GameRepository) *Adventure {
+func NewAdventure(gc *controllers.Game) *Adventure {
 	controls := NewBasicControls()
 	levelManager := level.NewManager()
-
 	view := views.InitializeAdventureView()
 	view.SetMode(gameMode)
 	view.SetLevel(levelManager.GetLevelNumber())
@@ -39,7 +40,7 @@ func NewAdventure(repo storage.GameRepository) *Adventure {
 		controls:     controls,
 		stats:        storage.NewStats(),
 		levelManager: levelManager,
-		repo:         repo,
+		gc:           gc,
 		view:         view,
 	}
 }
@@ -81,22 +82,11 @@ func (a *Adventure) Save() error {
 			TimeElapsed:     a.stats.TimeElapsed,
 		},
 	}
-
-	gameSave := storage.GameSave{
-		ID:        "0",
-		Player:    storage.Player{ID: "0", Name: "Player"},
-		Timestamp: time.Now(),
-		GameMode:  gameMode,
-		GameState: gameState,
-	}
-
-	// todo: should not call repo directly but call a service that calls the repo
-
-	return a.repo.SaveGame(gameSave)
+	return a.gc.SaveGame(gameMode, gameState)
 }
 
 // Load creates a new Adventure instance from a saved app controllers
-func Load(repo storage.GameRepository, gameState storage.GameState, size tea.WindowSizeMsg) (*Adventure, error) {
+func Load(gc *controllers.Game, gameState storage.GameState, size tea.WindowSizeMsg) (*Adventure, error) {
 	// Ensure the GameState is of the correct type
 	ags, ok := gameState.(storage.AdventureGameState)
 	if !ok {
@@ -110,6 +100,7 @@ func Load(repo storage.GameRepository, gameState storage.GameState, size tea.Win
 	gameView.Size = size
 	gameView.SetMode(gameMode)
 	gameView.SetLevel(ags.Level.Number)
+	gameView.SetPlayer("Player")
 	gameView.SetStats(ags.Stats.TotalKeystrokes, ags.Stats.TimeElapsed)
 	gameView.SetInfo(levelManager.GetCurrentLevel().GetInstructions())
 	gameView.Help = controls.BasicHelp()
@@ -118,7 +109,7 @@ func Load(repo storage.GameRepository, gameState storage.GameState, size tea.Win
 		controls:     controls,
 		stats:        &ags.Stats,
 		levelManager: levelManager,
-		repo:         repo,
+		gc:           gc,
 		view:         gameView,
 	}
 
@@ -163,6 +154,9 @@ func (a *Adventure) Init() tea.Cmd {
 
 func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case screens.SetPlayerMsg:
+		a.view.SetPlayer(msg.Player.Name)
+		return a, nil
 	case TickMsg:
 		a.stats.IncrementTime()
 		a.view.SetStats(a.stats.TotalKeystrokes, a.stats.TimeElapsed)
