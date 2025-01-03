@@ -75,15 +75,26 @@ func (sv *SelectionView) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 func (sv *SelectionView) Init() tea.Cmd { return nil }
 
 func (sv *SelectionView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	_, cmd := sv.List.Update(msg)
-
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		sv.size = msg
 	case tea.KeyMsg:
-		return sv.handleKeyPress(msg)
+		switch {
+		case key.Matches(msg, sv.controls.Select) && !sv.InFilterMode():
+			selected := sv.List.SelectedItem().(cl.Item)
+			return sv, sv.onSelect(selected)
+		case key.Matches(msg, sv.InsertControls.Insert) && !sv.InFilterMode():
+			if sv.onInsert != nil {
+				return sv, sv.onInsert()
+			}
+		case key.Matches(msg, sv.controls.Quit) && !sv.InFilterMode():
+			return sv, tea.Quit
+		}
 	}
 
+	// todo: figure out how to fix the view after applying a filter
+
+	var cmd tea.Cmd
 	sv.List.Model, cmd = sv.List.Model.Update(msg)
 	return sv, cmd
 }
