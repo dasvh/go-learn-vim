@@ -3,7 +3,7 @@ package models
 // Level represents a level in the adventure mode
 type Level interface {
 	Init(width, height int)
-	UpdatePlayerAction(position Position) PlayerMovement
+	PlayerMove(position Position) PlayerMovement
 	PlacePlayer(position Position)
 	Render() [][]rune
 	GetStartPosition() Position

@@ -46,7 +46,7 @@ func NewAdventure(gc *controllers.Game) *Adventure {
 	}
 }
 
-// scalePosition scales a position based on the x and y scaling factors
+// scalePosition scales a models.Position based on the x and y scaling factors
 func scalePosition(pos models.Position, xScale, yScale float64) models.Position {
 	return models.Position{
 		X: int(float64(pos.X) * xScale),
@@ -63,7 +63,7 @@ func (a *Adventure) initializeLevel() {
 	a.view.Info.SetText(a.levelManager.GetCurrentLevel().GetInstructions())
 }
 
-// Save saves the app gameState
+// Save saves the app models.AdventureGameState with models.Stats
 func (a *Adventure) Save() error {
 	gameState := models.AdventureGameState{
 		WindowSize: a.view.Size,
@@ -86,7 +86,7 @@ func (a *Adventure) Save() error {
 	return a.gc.SaveGame(gameMode, gameState)
 }
 
-// Load creates a new Adventure instance from a saved app controllers
+// Load creates a new Adventure instance from a saved models.GameState
 func Load(gc *controllers.Game, gameState models.GameState, size tea.WindowSizeMsg) (*Adventure, error) {
 	// Ensure the GameState is of the correct type
 	ags, ok := gameState.(models.AdventureGameState)
@@ -197,7 +197,7 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// update player action
-		result := a.levelManager.GetCurrentLevel().UpdatePlayerAction(delta)
+		result := a.levelManager.GetCurrentLevel().PlayerMove(delta)
 
 		// update app instructions
 		if result.InstructionMessage != "" {
