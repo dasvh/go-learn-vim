@@ -13,4 +13,6 @@ type GameRepository interface {
 
 	LifetimeStats() (*LifetimeStats, error)
 	PlayerLifetimeStats(playerID string) (*LifetimeStats, error)
+
+	ComputeHighScores() ([]HighScore, error)
 }

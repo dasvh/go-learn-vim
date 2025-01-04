@@ -7,9 +7,9 @@ import (
 	"github.com/dasvh/go-learn-vim/internal/app/screens"
 	"github.com/dasvh/go-learn-vim/internal/app/screens/adventure"
 	"github.com/dasvh/go-learn-vim/internal/app/screens/info"
+	"github.com/dasvh/go-learn-vim/internal/app/screens/leaderboards"
 	"github.com/dasvh/go-learn-vim/internal/app/screens/menus"
 	"github.com/dasvh/go-learn-vim/internal/app/screens/selection"
-	"github.com/dasvh/go-learn-vim/internal/app/screens/stats"
 	"github.com/dasvh/go-learn-vim/internal/storage"
 )
 
@@ -39,7 +39,8 @@ func NewApp(repo storage.GameRepository) *App {
 	manager.Register(screens.NewGameScreen, menus.NewGameModes())
 	manager.Register(screens.PlayerSelectionScreen, selection.NewPlayerSelection(gc, screens.NewGameScreen))
 	manager.Register(screens.AdventureModeScreen, adventure.NewAdventure(gc))
-	manager.Register(screens.StatsScreen, stats.NewStatsScreen(repo))
+	manager.Register(screens.StatsScreen, leaderboards.NewStatsScreen(repo))
+	manager.Register(screens.ScoresScreen, leaderboards.NewScoresScreen(repo))
 
 	return &App{
 		manager: manager,

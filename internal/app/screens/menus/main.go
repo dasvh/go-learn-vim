@@ -27,7 +27,7 @@ func NewMainMenu(canLoadGame bool) views.Menu {
 		{Label: ButtonInfo},
 		{Label: ButtonLoad, Inactive: !canLoadGame},
 		{Label: ButtonNew},
-		{Label: ButtonScores, Inactive: true},
+		{Label: ButtonScores},
 		{Label: ButtonStats},
 		{Label: ButtonQuit},
 	})
@@ -62,7 +62,7 @@ func (m *Main) HandleSelection() tea.Cmd {
 	case ButtonNew:
 		return screens.ChangeScreen(screens.PlayerSelectionScreen)
 	case ButtonScores:
-		return nil
+		return screens.ChangeScreen(screens.ScoresScreen)
 	case ButtonStats:
 		return screens.ChangeScreen(screens.StatsScreen)
 	case ButtonQuit:

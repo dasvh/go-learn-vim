@@ -40,6 +40,8 @@ const (
 	AdventureModeScreen
 	// StatsScreen represents the stats screen
 	StatsScreen
+	// ScoresScreen represents the scores screen
+	ScoresScreen
 )
 
 // ChangeScreen returns a command to change the current screen to the specified screen
