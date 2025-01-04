@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 )
 
 // JSONRepository stores the data in a JSON file
@@ -158,4 +159,41 @@ func (repo *JSONRepository) PlayerLifetimeStats(playerID string) (*LifetimeStats
 	}
 
 	return lifetimeStats, nil
+}
+
+// ComputeHighScores computes high scores for the repository
+func (repo *JSONRepository) ComputeHighScores() ([]HighScore, error) {
+	const (
+		BaseScore       = 25000
+		TimeWeight      = 177
+		KeystrokeWeight = 17
+		MinScore        = 5000
+	)
+	var highScores []HighScore
+
+	for _, save := range repo.data.Saves {
+		if save.GameState.IsCompleted() {
+			gameStats := save.GameState.(AdventureGameState).Stats
+			if gameStats.TimeElapsed > 0 && gameStats.TotalKeystrokes > 0 {
+				timePenalty := gameStats.TimeElapsed * TimeWeight
+				keystrokePenalty := gameStats.TotalKeystrokes * KeystrokeWeight
+				score := BaseScore - timePenalty - keystrokePenalty
+				if score < MinScore {
+					score = MinScore
+				}
+				highScores = append(highScores, HighScore{
+					PlayerName: save.Player.Name,
+					Level:      save.GameState.(AdventureGameState).Level.Number,
+					Score:      score,
+					Timestamp:  save.Timestamp,
+				})
+			}
+		}
+	}
+
+	sort.Slice(highScores, func(i, j int) bool {
+		return highScores[i].Score > highScores[j].Score
+	})
+
+	return highScores, nil
 }

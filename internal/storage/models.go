@@ -36,6 +36,7 @@ type GameSave struct {
 	Timestamp time.Time `json:"timestamp"`
 	GameMode  string    `json:"game_mode"`
 	GameState GameState `json:"game_state"`
+	Score     int       `json:"score"`
 }
 
 // UnmarshalJSON decodes a GameSave from JSON
@@ -107,4 +108,12 @@ func (ls *LifetimeStats) Merge(stats Stats) {
 	for key, count := range stats.KeyPresses {
 		ls.KeyPresses[key] += count
 	}
+}
+
+// HighScore represents a player's high score entry
+type HighScore struct {
+	PlayerName string    `json:"player_name"`
+	Level      int       `json:"level"`
+	Score      int       `json:"score"`
+	Timestamp  time.Time `json:"timestamp"`
 }

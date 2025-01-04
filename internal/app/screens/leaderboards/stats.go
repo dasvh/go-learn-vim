@@ -1,9 +1,10 @@
-package stats
+package leaderboards
 
 import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/dasvh/go-learn-vim/internal/app/screens/selection"
 	"github.com/dasvh/go-learn-vim/internal/storage"
 	"github.com/dasvh/go-learn-vim/internal/views"
 	"sort"
@@ -24,8 +25,8 @@ func NewStatsScreen(repo storage.GameRepository) *StatsScreen {
 	tv := views.NewTableView("Stats")
 
 	tv.SetColumns([]table.Column{
-		{Title: "Player", Width: 20},
-		{Title: "Games Played", Width: 15},
+		{Title: "Player", Width: selection.PlayerNameMaxLength},
+		{Title: "Games Played", Width: 12},
 		{Title: "Keystrokes", Width: 12},
 		{Title: "Playtime (s)", Width: 12},
 		{Title: "Key Presses", Width: 30},
