@@ -3,7 +3,7 @@ package info
 import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/dasvh/go-learn-vim/internal/app/screens"
+	"github.com/dasvh/go-learn-vim/internal/models"
 	"github.com/dasvh/go-learn-vim/internal/views"
 )
 
@@ -26,7 +26,7 @@ func (mi *MotionsInfo) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if key.Matches(msg, mi.Controls().Back) {
-			return mi, screens.ChangeScreen(screens.InfoMenuScreen)
+			return mi, models.ChangeScreen(models.InfoMenuScreen)
 		}
 	}
 

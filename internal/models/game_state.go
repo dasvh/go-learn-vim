@@ -1,18 +1,11 @@
-package storage
+package models
 
 import (
 	"encoding/json"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/dasvh/go-learn-vim/internal/app/screens/adventure/level"
 	"time"
 )
-
-// Player represents a player with an ID and a name
-type Player struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
 
 // GameState represents the controllers of a game
 type GameState interface {
@@ -22,7 +15,7 @@ type GameState interface {
 // AdventureGameState represents the controllers of an adventure game
 type AdventureGameState struct {
 	WindowSize tea.WindowSizeMsg `json:"window_size"`
-	Level      level.SavedLevel  `json:"level"`
+	Level      SavedLevel        `json:"level"`
 	Stats      Stats             `json:"stats"`
 }
 
@@ -80,40 +73,4 @@ func (gs *GameSave) MarshalJSON() ([]byte, error) {
 		GameState: gs.GameState,
 	}
 	return json.Marshal(aux)
-}
-
-// LifetimeStats represents aggregated statistics for all games
-type LifetimeStats struct {
-	TotalKeystrokes int            `json:"total_keystrokes"`
-	TotalPlaytime   int            `json:"total_playtime"`
-	TotalGames      int            `json:"total_games"`
-	KeyPresses      map[string]int `json:"key_presses"`
-}
-
-// NewLifetimeStats initializes an empty LifetimeStats
-func NewLifetimeStats() *LifetimeStats {
-	return &LifetimeStats{
-		TotalKeystrokes: 0,
-		TotalPlaytime:   0,
-		TotalGames:      0,
-		KeyPresses:      make(map[string]int),
-	}
-}
-
-// Merge aggregates stats from another Stats instance
-func (ls *LifetimeStats) Merge(stats Stats) {
-	ls.TotalKeystrokes += stats.TotalKeystrokes
-	ls.TotalPlaytime += stats.TimeElapsed
-
-	for key, count := range stats.KeyPresses {
-		ls.KeyPresses[key] += count
-	}
-}
-
-// HighScore represents a player's high score entry
-type HighScore struct {
-	PlayerName string    `json:"player_name"`
-	Level      int       `json:"level"`
-	Score      int       `json:"score"`
-	Timestamp  time.Time `json:"timestamp"`
 }

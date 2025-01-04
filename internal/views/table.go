@@ -7,9 +7,9 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/dasvh/go-learn-vim/internal/app/screens"
 	"github.com/dasvh/go-learn-vim/internal/components"
 	ct "github.com/dasvh/go-learn-vim/internal/components/table"
+	"github.com/dasvh/go-learn-vim/internal/models"
 	"github.com/dasvh/go-learn-vim/internal/style"
 )
 
@@ -67,7 +67,7 @@ func (tv *TableView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, tv.tableControls.Select):
 			fmt.Println("Row selected:", tv.table.SelectedRow())
 		case key.Matches(msg, tv.tableControls.Back):
-			return tv, screens.ChangeScreen(screens.MainMenuScreen)
+			return tv, models.ChangeScreen(models.MainMenuScreen)
 		case key.Matches(msg, tv.tableControls.Quit):
 			return tv, tea.Quit
 		}

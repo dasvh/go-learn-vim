@@ -5,20 +5,21 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/dasvh/go-learn-vim/internal/app/controllers"
-	"github.com/dasvh/go-learn-vim/internal/app/screens"
-	"github.com/dasvh/go-learn-vim/internal/app/screens/adventure/level"
-	"github.com/dasvh/go-learn-vim/internal/storage"
+	"github.com/dasvh/go-learn-vim/internal/models"
 	"github.com/dasvh/go-learn-vim/internal/views"
 	"time"
 )
+
+// TODO: there is a bug with the player position when the window is resized before starting a game
+// 		 need to send a Msg to AdventureModel before starting a game to init the size related state
 
 const gameMode = "Adventure"
 
 // Adventure represents the adventure mode
 type Adventure struct {
 	controls     Controls
-	stats        *storage.Stats
-	levelManager *level.Manager
+	stats        *models.Stats
+	levelManager *controllers.Level
 	gc           *controllers.Game
 	view         views.AdventureView
 	gridWidth    int
@@ -28,7 +29,7 @@ type Adventure struct {
 // NewAdventure creates a new Adventure instance
 func NewAdventure(gc *controllers.Game) *Adventure {
 	controls := NewBasicControls()
-	levelManager := level.NewManager()
+	levelManager := controllers.NewLevel()
 	view := views.InitializeAdventureView()
 	view.SetMode(gameMode)
 	view.SetLevel(levelManager.GetLevelNumber())
@@ -38,7 +39,7 @@ func NewAdventure(gc *controllers.Game) *Adventure {
 
 	return &Adventure{
 		controls:     controls,
-		stats:        storage.NewStats(),
+		stats:        models.NewStats(),
 		levelManager: levelManager,
 		gc:           gc,
 		view:         view,
@@ -46,8 +47,8 @@ func NewAdventure(gc *controllers.Game) *Adventure {
 }
 
 // scalePosition scales a position based on the x and y scaling factors
-func scalePosition(pos level.Position, xScale, yScale float64) level.Position {
-	return level.Position{
+func scalePosition(pos models.Position, xScale, yScale float64) models.Position {
+	return models.Position{
 		X: int(float64(pos.X) * xScale),
 		Y: int(float64(pos.Y) * yScale),
 	}
@@ -64,9 +65,9 @@ func (a *Adventure) initializeLevel() {
 
 // Save saves the app gameState
 func (a *Adventure) Save() error {
-	gameState := storage.AdventureGameState{
+	gameState := models.AdventureGameState{
 		WindowSize: a.view.Size,
-		Level: level.SavedLevel{
+		Level: models.SavedLevel{
 			Number:         a.levelManager.GetLevelNumber(),
 			Width:          a.gridWidth,
 			Height:         a.gridHeight,
@@ -76,7 +77,7 @@ func (a *Adventure) Save() error {
 			Completed:      a.levelManager.GetCurrentLevel().IsCompleted(),
 			InProgress:     a.levelManager.GetCurrentLevel().InProgress(),
 		},
-		Stats: storage.Stats{
+		Stats: models.Stats{
 			KeyPresses:      a.stats.KeyPresses,
 			TotalKeystrokes: a.stats.TotalKeystrokes,
 			TimeElapsed:     a.stats.TimeElapsed,
@@ -86,15 +87,15 @@ func (a *Adventure) Save() error {
 }
 
 // Load creates a new Adventure instance from a saved app controllers
-func Load(gc *controllers.Game, gameState storage.GameState, size tea.WindowSizeMsg) (*Adventure, error) {
+func Load(gc *controllers.Game, gameState models.GameState, size tea.WindowSizeMsg) (*Adventure, error) {
 	// Ensure the GameState is of the correct type
-	ags, ok := gameState.(storage.AdventureGameState)
+	ags, ok := gameState.(models.AdventureGameState)
 	if !ok {
-		return nil, fmt.Errorf("invalid game controllers type: expected AdventureGameState")
+		return nil, fmt.Errorf("invalid game state type: expected AdventureGameState")
 	}
 
 	controls := NewBasicControls()
-	levelManager := level.NewManager()
+	levelManager := controllers.NewLevel()
 
 	gameView := views.InitializeAdventureView()
 	gameView.Size = size
@@ -154,7 +155,7 @@ func (a *Adventure) Init() tea.Cmd {
 
 func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case screens.SetPlayerMsg:
+	case models.SetPlayerMsg:
 		a.view.SetPlayer(msg.Player.Name)
 		return a, nil
 	case TickMsg:
@@ -172,20 +173,20 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		keyString := msg.String()
 		isMotionKey := false
-		var delta level.Position
+		var delta models.Position
 		switch {
 		case key.Matches(msg, a.controls.MoveLeft):
 			isMotionKey = true
-			delta = level.Position{X: -1, Y: 0}
+			delta = models.Position{X: -1, Y: 0}
 		case key.Matches(msg, a.controls.MoveRight):
 			isMotionKey = true
-			delta = level.Position{X: 1, Y: 0}
+			delta = models.Position{X: 1, Y: 0}
 		case key.Matches(msg, a.controls.MoveUp):
 			isMotionKey = true
-			delta = level.Position{X: 0, Y: -1}
+			delta = models.Position{X: 0, Y: -1}
 		case key.Matches(msg, a.controls.MoveDown):
 			isMotionKey = true
-			delta = level.Position{X: 0, Y: 1}
+			delta = models.Position{X: 0, Y: 1}
 		case key.Matches(msg, a.controls.Quit):
 			// save the app controllers before quitting
 			err := a.Save()

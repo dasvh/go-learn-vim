@@ -3,6 +3,7 @@ package storage
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dasvh/go-learn-vim/internal/models"
 	"os"
 	"sort"
 )
@@ -11,8 +12,8 @@ import (
 type JSONRepository struct {
 	filePath string
 	data     struct {
-		Players []Player   `json:"players"`
-		Saves   []GameSave `json:"saves"`
+		Players []models.Player   `json:"players"`
+		Saves   []models.GameSave `json:"saves"`
 	}
 }
 
@@ -47,18 +48,18 @@ func (repo *JSONRepository) save() error {
 }
 
 // AddPlayer adds a new player to the repository
-func (repo *JSONRepository) AddPlayer(player Player) error {
+func (repo *JSONRepository) AddPlayer(player models.Player) error {
 	repo.data.Players = append(repo.data.Players, player)
 	return repo.save()
 }
 
 // Players returns all players in the repository
-func (repo *JSONRepository) Players() ([]Player, error) {
+func (repo *JSONRepository) Players() ([]models.Player, error) {
 	return repo.data.Players, nil
 }
 
 // SaveGame saves a game to the repository
-func (repo *JSONRepository) SaveGame(save GameSave) error {
+func (repo *JSONRepository) SaveGame(save models.GameSave) error {
 	for i, s := range repo.data.Saves {
 		if s.ID == save.ID {
 			repo.data.Saves[i] = save
@@ -70,14 +71,14 @@ func (repo *JSONRepository) SaveGame(save GameSave) error {
 }
 
 // LoadGame loads a game from the repository
-func (repo *JSONRepository) LoadGame(gameID string) (GameSave, error) {
+func (repo *JSONRepository) LoadGame(gameID string) (models.GameSave, error) {
 	for _, save := range repo.data.Saves {
 		if save.ID == gameID {
 			return save, nil
 		}
 	}
 
-	return GameSave{}, fmt.Errorf("game with ID %s not found", gameID)
+	return models.GameSave{}, fmt.Errorf("game with ID %s not found", gameID)
 }
 
 // HasIncompleteGames returns whether there are any incomplete games
@@ -98,8 +99,8 @@ func (repo *JSONRepository) HasIncompleteGames() (bool, error) {
 }
 
 // IncompleteGames returns all incomplete games
-func (repo *JSONRepository) IncompleteGames() ([]GameSave, error) {
-	var incomplete []GameSave
+func (repo *JSONRepository) IncompleteGames() ([]models.GameSave, error) {
+	var incomplete []models.GameSave
 	for _, save := range repo.data.Saves {
 		if !save.GameState.IsCompleted() {
 			incomplete = append(incomplete, save)
@@ -110,13 +111,13 @@ func (repo *JSONRepository) IncompleteGames() ([]GameSave, error) {
 }
 
 // LoadGameState loads a specific GameState from the repository
-func (repo *JSONRepository) LoadGameState(gameID string) (GameState, error) {
+func (repo *JSONRepository) LoadGameState(gameID string) (models.GameState, error) {
 	for _, save := range repo.data.Saves {
 		if save.ID == gameID {
 			// Deserialize the specific GameState type
 			switch save.GameState.(type) {
-			case AdventureGameState:
-				return save.GameState.(AdventureGameState), nil
+			case models.AdventureGameState:
+				return save.GameState.(models.AdventureGameState), nil
 			default:
 				return nil, fmt.Errorf("unsupported game controllers mode")
 			}
@@ -126,13 +127,13 @@ func (repo *JSONRepository) LoadGameState(gameID string) (GameState, error) {
 }
 
 // LifetimeStats computes aggregated stats across all game saves
-func (repo *JSONRepository) LifetimeStats() (*LifetimeStats, error) {
-	lifetimeStats := NewLifetimeStats()
+func (repo *JSONRepository) LifetimeStats() (*models.LifetimeStats, error) {
+	lifetimeStats := models.NewLifetimeStats()
 
 	uniqueGames := make(map[string]struct{}) // Track unique game IDs
 
 	for _, save := range repo.data.Saves {
-		if adventureState, ok := save.GameState.(AdventureGameState); ok {
+		if adventureState, ok := save.GameState.(models.AdventureGameState); ok {
 			lifetimeStats.Merge(adventureState.Stats)
 
 			if _, exists := uniqueGames[save.ID]; !exists {
@@ -146,12 +147,12 @@ func (repo *JSONRepository) LifetimeStats() (*LifetimeStats, error) {
 }
 
 // PlayerLifetimeStats computes stats for a specific player
-func (repo *JSONRepository) PlayerLifetimeStats(playerID string) (*LifetimeStats, error) {
-	lifetimeStats := NewLifetimeStats()
+func (repo *JSONRepository) PlayerLifetimeStats(playerID string) (*models.LifetimeStats, error) {
+	lifetimeStats := models.NewLifetimeStats()
 
 	for _, save := range repo.data.Saves {
 		if save.Player.ID == playerID {
-			if adventureState, ok := save.GameState.(AdventureGameState); ok {
+			if adventureState, ok := save.GameState.(models.AdventureGameState); ok {
 				lifetimeStats.Merge(adventureState.Stats)
 				lifetimeStats.TotalGames++
 			}
@@ -162,18 +163,18 @@ func (repo *JSONRepository) PlayerLifetimeStats(playerID string) (*LifetimeStats
 }
 
 // ComputeHighScores computes high scores for the repository
-func (repo *JSONRepository) ComputeHighScores() ([]HighScore, error) {
+func (repo *JSONRepository) ComputeHighScores() ([]models.HighScore, error) {
 	const (
 		BaseScore       = 25000
 		TimeWeight      = 177
 		KeystrokeWeight = 17
 		MinScore        = 5000
 	)
-	var highScores []HighScore
+	var highScores []models.HighScore
 
 	for _, save := range repo.data.Saves {
 		if save.GameState.IsCompleted() {
-			gameStats := save.GameState.(AdventureGameState).Stats
+			gameStats := save.GameState.(models.AdventureGameState).Stats
 			if gameStats.TimeElapsed > 0 && gameStats.TotalKeystrokes > 0 {
 				timePenalty := gameStats.TimeElapsed * TimeWeight
 				keystrokePenalty := gameStats.TotalKeystrokes * KeystrokeWeight
@@ -181,9 +182,9 @@ func (repo *JSONRepository) ComputeHighScores() ([]HighScore, error) {
 				if score < MinScore {
 					score = MinScore
 				}
-				highScores = append(highScores, HighScore{
+				highScores = append(highScores, models.HighScore{
 					PlayerName: save.Player.Name,
-					Level:      save.GameState.(AdventureGameState).Level.Number,
+					Level:      save.GameState.(models.AdventureGameState).Level.Number,
 					Score:      score,
 					Timestamp:  save.Timestamp,
 				})

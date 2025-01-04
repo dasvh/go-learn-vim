@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/dasvh/go-learn-vim/internal/app/screens/selection"
+	"github.com/dasvh/go-learn-vim/internal/models"
 	"github.com/dasvh/go-learn-vim/internal/storage"
 	"github.com/dasvh/go-learn-vim/internal/views"
 	"sort"
@@ -14,8 +15,8 @@ import (
 // StatsScreen represents the screen model for the Stats screen
 type StatsScreen struct {
 	view          *views.TableView
-	lifetimeStats *storage.LifetimeStats
-	playerStats   map[string]*storage.LifetimeStats
+	lifetimeStats *models.LifetimeStats
+	playerStats   map[string]*models.LifetimeStats
 	error         error
 	repo          storage.GameRepository
 }
@@ -34,7 +35,7 @@ func NewStatsScreen(repo storage.GameRepository) *StatsScreen {
 
 	return &StatsScreen{
 		view:        tv,
-		playerStats: make(map[string]*storage.LifetimeStats),
+		playerStats: make(map[string]*models.LifetimeStats),
 		repo:        repo,
 	}
 }
@@ -47,7 +48,7 @@ func (sv *StatsScreen) Init() tea.Cmd {
 			return statsScreenError{err}
 		}
 
-		playerStats := make(map[string]*storage.LifetimeStats)
+		playerStats := make(map[string]*models.LifetimeStats)
 		players, err := sv.repo.Players()
 		if err == nil {
 			for _, p := range players {
@@ -133,8 +134,8 @@ func formatKeyPresses(keyPresses map[string]int) string {
 
 // statsScreenData holds the stats data for updating the screen
 type statsScreenData struct {
-	LifetimeStats *storage.LifetimeStats
-	PlayerStats   map[string]*storage.LifetimeStats
+	LifetimeStats *models.LifetimeStats
+	PlayerStats   map[string]*models.LifetimeStats
 }
 
 // statsScreenError represents an error encountered in StatsScreen

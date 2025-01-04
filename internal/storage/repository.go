@@ -1,18 +1,20 @@
 package storage
 
+import "github.com/dasvh/go-learn-vim/internal/models"
+
 type GameRepository interface {
-	AddPlayer(Player) error
-	Players() ([]Player, error)
+	AddPlayer(models.Player) error
+	Players() ([]models.Player, error)
 
-	SaveGame(save GameSave) error
-	LoadGame(gameID string) (GameSave, error)
+	SaveGame(save models.GameSave) error
+	LoadGame(gameID string) (models.GameSave, error)
 	HasIncompleteGames() (bool, error)
-	IncompleteGames() ([]GameSave, error)
+	IncompleteGames() ([]models.GameSave, error)
 
-	LoadGameState(gameID string) (GameState, error)
+	LoadGameState(gameID string) (models.GameState, error)
 
-	LifetimeStats() (*LifetimeStats, error)
-	PlayerLifetimeStats(playerID string) (*LifetimeStats, error)
+	LifetimeStats() (*models.LifetimeStats, error)
+	PlayerLifetimeStats(playerID string) (*models.LifetimeStats, error)
 
-	ComputeHighScores() ([]HighScore, error)
+	ComputeHighScores() ([]models.HighScore, error)
 }

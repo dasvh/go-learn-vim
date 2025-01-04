@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/dasvh/go-learn-vim/internal/models"
 	"github.com/dasvh/go-learn-vim/internal/storage"
 	"github.com/google/uuid"
 	"time"
@@ -10,7 +11,7 @@ import (
 // Game is a controller for game related actions
 type Game struct {
 	repo          storage.GameRepository
-	currentPlayer *storage.Player
+	currentPlayer *models.Player
 }
 
 // NewGame creates a new Game controller
@@ -19,50 +20,50 @@ func NewGame(repo storage.GameRepository) *Game {
 }
 
 // CreatePlayer creates a new player with the given name
-func (g *Game) CreatePlayer(name string) (storage.Player, error) {
-	players, err := g.repo.Players()
+func (gc *Game) CreatePlayer(name string) (models.Player, error) {
+	players, err := gc.repo.Players()
 	if err != nil {
-		return storage.Player{}, err
+		return models.Player{}, err
 	}
 
 	for _, player := range players {
 		if player.Name == name {
-			return storage.Player{}, fmt.Errorf("player with name %q already exists", name)
+			return models.Player{}, fmt.Errorf("player with name %q already exists", name)
 		}
 	}
 
-	player := storage.Player{
+	player := models.Player{
 		ID:   uuid.NewString(),
 		Name: name,
 	}
 
-	err = g.repo.AddPlayer(player)
+	err = gc.repo.AddPlayer(player)
 	return player, err
 }
 
 // Players returns all players
-func (g *Game) Players() ([]storage.Player, error) {
-	return g.repo.Players()
+func (gc *Game) Players() ([]models.Player, error) {
+	return gc.repo.Players()
 }
 
 // SetPlayer sets the current player
-func (g *Game) SetPlayer(player storage.Player) {
-	g.currentPlayer = &player
+func (gc *Game) SetPlayer(player models.Player) {
+	gc.currentPlayer = &player
 }
 
 // SaveGame saves the current game state
-func (g *Game) SaveGame(mode string, gameState storage.GameState) error {
-	if g.currentPlayer == nil {
+func (gc *Game) SaveGame(mode string, gameState models.GameState) error {
+	if gc.currentPlayer == nil {
 		return fmt.Errorf("no player selected")
 	}
 
-	gameSave := storage.GameSave{
+	gameSave := models.GameSave{
 		ID:        uuid.NewString(),
-		Player:    *g.currentPlayer,
+		Player:    *gc.currentPlayer,
 		Timestamp: time.Now(),
 		GameMode:  mode,
 		GameState: gameState,
 	}
 
-	return g.repo.SaveGame(gameSave)
+	return gc.repo.SaveGame(gameSave)
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/dasvh/go-learn-vim/internal/app/screens/selection"
+	"github.com/dasvh/go-learn-vim/internal/models"
 	"github.com/dasvh/go-learn-vim/internal/storage"
 	"github.com/dasvh/go-learn-vim/internal/views"
 	"strconv"
@@ -13,7 +14,7 @@ import (
 // ScoresScreen represents the screen model for the Scores screen
 type ScoresScreen struct {
 	view       *views.TableView
-	highScores []storage.HighScore
+	highScores []models.HighScore
 	error      error
 	repo       storage.GameRepository
 }
@@ -33,7 +34,7 @@ func NewScoresScreen(repo storage.GameRepository) *ScoresScreen {
 	return &ScoresScreen{
 		view:       tv,
 		repo:       repo,
-		highScores: make([]storage.HighScore, 0),
+		highScores: make([]models.HighScore, 0),
 	}
 }
 
@@ -97,7 +98,7 @@ func (ss *ScoresScreen) populateTable() {
 
 // scoresScreenData is a message that contains the data for the ScoresScreen screen model
 type scoresScreenData struct {
-	HighScores []storage.HighScore
+	HighScores []models.HighScore
 }
 
 // scoresScreenError is a message that contains an error for the ScoresScreen screen model

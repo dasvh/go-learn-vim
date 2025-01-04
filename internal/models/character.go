@@ -1,4 +1,4 @@
-package components
+package models
 
 import (
 	"github.com/charmbracelet/lipgloss"

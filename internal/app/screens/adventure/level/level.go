@@ -2,80 +2,38 @@ package level
 
 import (
 	"fmt"
-	"github.com/dasvh/go-learn-vim/internal/components"
+	"github.com/dasvh/go-learn-vim/internal/models"
 	"time"
 )
 
-// Level represents a level in the adventure mode
-type Level interface {
-	Init(width, height int)
-	UpdatePlayerAction(position Position) PlayerActionResult
-	PlacePlayer(position Position)
-	Render() [][]rune
-	GetStartPosition() Position
-	GetCurrentPosition() Position
-	GetTargets() []Target
-	GetCurrentTarget() int
-	GetInstructions() string
-	InProgress() bool
-	IsCompleted() bool
-	Restore(state SavedLevel) error
-}
-
 const levelNumberZero = 0
 
-// SavedLevel represents a saved level
-type SavedLevel struct {
-	Number         int      `json:"number"`
-	Width          int      `json:"width"`
-	Height         int      `json:"height"`
-	PlayerPosition Position `json:"player_position"`
-	Targets        []Target `json:"targets"`
-	CurrentTarget  int      `json:"current_target"`
-	Completed      bool     `json:"completed"`
-	InProgress     bool     `json:"in_progress"`
-}
-
-// Position represents a 2D Position
-type Position struct {
-	X int
-	Y int
-}
-
-// PlayerActionResult represents the result of a player action
-type PlayerActionResult struct {
-	UpdatedPosition    Position
-	Completed          bool
-	ValidMove          bool
-	InstructionMessage string
-}
-
-type LevelZero struct {
+type Zero struct {
 	grid           [][]rune
 	currentTarget  int
 	width          int
 	height         int
-	player         Position
-	targets        []Target
+	player         models.Position
+	targets        []models.Target
 	completed      bool
 	restore        bool
 	inProgress     bool
-	chars          *components.Characters
+	chars          *models.Characters
 	movementBlock  bool
 	blockEnds      time.Time
-	targetBehavior TargetBehavior
+	targetBehavior models.TargetBehavior
 }
 
-func NewLevelZero() (Level, int) {
-	chars := &components.DefaultCharacters
-	return &LevelZero{
+func NewLevelZero() (models.Level, int) {
+	chars := &models.DefaultCharacters
+	return &Zero{
 		chars:          chars,
 		targetBehavior: NewCornerTargets(chars),
 	}, levelNumberZero
 }
 
 // Init initializes the level with the given dimensions
-func (level0 *LevelZero) Init(width, height int) {
+func (level0 *Zero) Init(width, height int) {
 	level0.inProgress = true
 	level0.setDimensions(width, height)
 	level0.resetTargets()
@@ -83,10 +41,10 @@ func (level0 *LevelZero) Init(width, height int) {
 }
 
 // UpdatePlayerAction handles player movement and Target completion
-func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
+func (level0 *Zero) UpdatePlayerAction(delta models.Position) models.PlayerMovement {
 	// block movement if cooldown is active
 	if level0.movementBlock && time.Now().Before(level0.blockEnds) {
-		return PlayerActionResult{
+		return models.PlayerMovement{
 			UpdatedPosition:    level0.player,
 			Completed:          level0.completed,
 			ValidMove:          false,
@@ -99,14 +57,14 @@ func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 		level0.movementBlock = false
 	}
 
-	newPos := Position{
+	newPos := models.Position{
 		X: level0.player.X + delta.X,
 		Y: level0.player.Y + delta.Y,
 	}
 
 	// check if player is within bounds
 	if newPos.X < 0 || newPos.X >= level0.width || newPos.Y < 0 || newPos.Y >= level0.height {
-		return PlayerActionResult{
+		return models.PlayerMovement{
 			UpdatedPosition:    level0.player,
 			Completed:          level0.completed,
 			ValidMove:          false,
@@ -121,7 +79,7 @@ func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 		if level0.currentTarget == level0.targetBehavior.GetTargetCount()-1 {
 			level0.completed = true
 			level0.inProgress = false
-			return PlayerActionResult{
+			return models.PlayerMovement{
 				UpdatedPosition:    level0.GetStartPosition(),
 				Completed:          true,
 				ValidMove:          true,
@@ -136,7 +94,7 @@ func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 		level0.movementBlock = true
 		level0.blockEnds = time.Now().Add(500 * time.Millisecond)
 
-		return PlayerActionResult{
+		return models.PlayerMovement{
 			UpdatedPosition:    level0.GetStartPosition(),
 			Completed:          false,
 			ValidMove:          true,
@@ -149,7 +107,7 @@ func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 	level0.grid[newPos.Y][newPos.X] = level0.chars.Player.Cursor.Rune
 	level0.player = newPos
 
-	return PlayerActionResult{
+	return models.PlayerMovement{
 		UpdatedPosition:    newPos,
 		Completed:          false,
 		ValidMove:          true,
@@ -158,7 +116,7 @@ func (level0 *LevelZero) UpdatePlayerAction(delta Position) PlayerActionResult {
 }
 
 // PlacePlayer places the player at the given Position
-func (level0 *LevelZero) PlacePlayer(position Position) {
+func (level0 *Zero) PlacePlayer(position models.Position) {
 	if !level0.restore {
 		level0.player = position
 	}
@@ -167,47 +125,47 @@ func (level0 *LevelZero) PlacePlayer(position Position) {
 }
 
 // Render provides the visual representation of the level
-func (level0 *LevelZero) Render() [][]rune {
+func (level0 *Zero) Render() [][]rune {
 	return level0.grid
 }
 
 // GetStartPosition returns the starting player Position
-func (level0 *LevelZero) GetStartPosition() Position {
-	return Position{level0.width / 2, level0.height / 2}
+func (level0 *Zero) GetStartPosition() models.Position {
+	return models.Position{X: level0.width / 2, Y: level0.height / 2}
 }
 
 // GetCurrentPosition returns the currentTarget player Position
-func (level0 *LevelZero) GetCurrentPosition() Position {
+func (level0 *Zero) GetCurrentPosition() models.Position {
 	return level0.player
 }
 
 // GetTargets returns the Target positions
-func (level0 *LevelZero) GetTargets() []Target {
+func (level0 *Zero) GetTargets() []models.Target {
 	return level0.targets
 }
 
 // GetCurrentTarget returns the currentTarget Target index
-func (level0 *LevelZero) GetCurrentTarget() int {
+func (level0 *Zero) GetCurrentTarget() int {
 	return level0.currentTarget
 }
 
 // GetInstructions returns the instructions for the currentTarget level
-func (level0 *LevelZero) GetInstructions() string {
+func (level0 *Zero) GetInstructions() string {
 	return fmt.Sprintf("Instructions: Target %d/%d: Reach the X using hjkl keys", level0.currentTarget+1, level0.targetBehavior.GetTargetCount())
 }
 
 // InProgress returns whether the level is in progress
-func (level0 *LevelZero) InProgress() bool {
+func (level0 *Zero) InProgress() bool {
 	return level0.inProgress
 }
 
 // IsCompleted returns whether the level is completed
-func (level0 *LevelZero) IsCompleted() bool {
+func (level0 *Zero) IsCompleted() bool {
 	return level0.completed
 }
 
 // Restore a SavedLevel from a game state
-func (level0 *LevelZero) Restore(state SavedLevel) error {
+func (level0 *Zero) Restore(state models.SavedLevel) error {
 	if state.Width <= 0 || state.Height <= 0 {
 		return fmt.Errorf("invalid dimensions in save state")
 	}
@@ -225,14 +183,14 @@ func (level0 *LevelZero) Restore(state SavedLevel) error {
 	return nil
 }
 
-func (level0 *LevelZero) initializeGrid() {
+func (level0 *Zero) initializeGrid() {
 	level0.clearGrid()
 	level0.PlacePlayer(level0.GetStartPosition())
 	level0.targetBehavior.UpdateGrid(level0.grid, level0.targets, level0.currentTarget, level0.chars)
 }
 
 // clearGrid clears the grid
-func (level0 *LevelZero) clearGrid() {
+func (level0 *Zero) clearGrid() {
 	for y := range level0.grid {
 		for x := range level0.grid[y] {
 			level0.grid[y][x] = ' '
@@ -241,7 +199,7 @@ func (level0 *LevelZero) clearGrid() {
 }
 
 // setDimensions sets the level dimensions and initializes the grid
-func (level0 *LevelZero) setDimensions(width, height int) {
+func (level0 *Zero) setDimensions(width, height int) {
 	level0.width = width
 	level0.height = height
 	level0.grid = make([][]rune, height)
@@ -251,13 +209,13 @@ func (level0 *LevelZero) setDimensions(width, height int) {
 }
 
 // resetTargets resets the Target positions
-func (level0 *LevelZero) resetTargets() {
+func (level0 *Zero) resetTargets() {
 	level0.targets = level0.targetBehavior.DefineTargets(level0.width, level0.height)
 	level0.currentTarget = 0
 }
 
 // replaceTargets replaces the currentTarget targets with the saved targets
-func (level0 *LevelZero) replaceTargets(savedTargets []Target) {
+func (level0 *Zero) replaceTargets(savedTargets []models.Target) {
 	// define targets based on currentTarget dimensions
 	targets := level0.targetBehavior.DefineTargets(level0.width, level0.height)
 

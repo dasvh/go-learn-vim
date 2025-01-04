@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dasvh/go-learn-vim/internal/components"
+	"github.com/dasvh/go-learn-vim/internal/models"
 	"github.com/dasvh/go-learn-vim/internal/style"
 )
 
@@ -126,7 +127,7 @@ func renderGameMap(gameMap GameMap, totalWidth int, bordersSpace int) string {
 	for _, row := range gameMap.Field {
 		var lineRunes []string
 		for _, r := range row {
-			characterStyle := components.ToDefaultCharacterStyle(r)
+			characterStyle := models.ToDefaultCharacterStyle(r)
 			cell := characterStyle.Render(string(r))
 			lineRunes = append(lineRunes, cell)
 		}

@@ -7,9 +7,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dasvh/go-learn-vim/internal/app/controllers"
-	"github.com/dasvh/go-learn-vim/internal/app/screens"
 	cl "github.com/dasvh/go-learn-vim/internal/components/list"
-	"github.com/dasvh/go-learn-vim/internal/storage"
+	"github.com/dasvh/go-learn-vim/internal/models"
 	"github.com/dasvh/go-learn-vim/internal/style"
 	"github.com/dasvh/go-learn-vim/internal/views"
 )
@@ -21,15 +20,15 @@ type PlayerSelection struct {
 	view        *views.SelectionView
 	size        tea.WindowSizeMsg
 	gc          *controllers.Game
-	gameScreen  screens.Screen
+	gameScreen  models.Screen
 	inInputMode bool
 	textInput   textinput.Model
-	players     []storage.Player
+	players     []models.Player
 }
 
 // NewPlayerSelection creates a new PlayerSelection screen.
 // It takes a game controller and a game screen
-func NewPlayerSelection(gc *controllers.Game, gameScreen screens.Screen) *PlayerSelection {
+func NewPlayerSelection(gc *controllers.Game, gameScreen models.Screen) *PlayerSelection {
 	players, _ := gc.Players()
 	playerItems := make([]cl.Item, len(players))
 
@@ -98,8 +97,8 @@ func (ps *PlayerSelection) handleSelect(item cl.Item) tea.Cmd {
 			ps.gc.SetPlayer(player)
 			// return a batch command to change the screen and set the player
 			return tea.Batch(
-				screens.ChangeScreen(ps.gameScreen),
-				func() tea.Msg { return screens.SetPlayerMsg{Player: player} },
+				models.ChangeScreen(ps.gameScreen),
+				func() tea.Msg { return models.SetPlayerMsg{Player: player} },
 			)
 		}
 	}
@@ -168,7 +167,7 @@ func (ps *PlayerSelection) createPlayer() (tea.Model, tea.Cmd) {
 }
 
 // addPlayerToList adds a player to the list
-func (ps *PlayerSelection) addPlayerToList(player storage.Player) {
+func (ps *PlayerSelection) addPlayerToList(player models.Player) {
 	ps.players = append(ps.players, player)
 	newItem := cl.Item{Name: player.Name}
 	ps.view.List.AddItem(newItem)
@@ -190,7 +189,7 @@ func (ps *PlayerSelection) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, ps.view.SelectionControls().Back) && !ps.view.List.IsFiltering():
-			return ps, screens.ChangeScreen(screens.MainMenuScreen)
+			return ps, models.ChangeScreen(models.MainMenuScreen)
 		}
 	}
 
