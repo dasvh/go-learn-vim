@@ -2,6 +2,8 @@ package models
 
 import "time"
 
+const PlayerNameMaxLength = 20
+
 // Player represents a player with an ID and a name
 type Player struct {
 	ID   string `json:"id"`

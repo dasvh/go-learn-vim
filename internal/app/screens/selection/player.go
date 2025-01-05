@@ -13,8 +13,6 @@ import (
 	"github.com/dasvh/go-learn-vim/internal/views"
 )
 
-const PlayerNameMaxLength = 20
-
 // PlayerSelection is a screen that allows the user to select a player or create a new one
 type PlayerSelection struct {
 	view        *views.SelectionView
@@ -44,7 +42,7 @@ func NewPlayerSelection(gc *controllers.Game, gameScreen models.Screen) *PlayerS
 	}
 
 	ps.textInput.Prompt = "Enter new player name: "
-	ps.textInput.CharLimit = PlayerNameMaxLength
+	ps.textInput.CharLimit = models.PlayerNameMaxLength
 	return ps
 }
 

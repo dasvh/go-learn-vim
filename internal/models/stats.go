@@ -1,5 +1,8 @@
 package models
 
+// StatsFormat is the format string for displaying stats
+const StatsFormat = "Keystrokes: %d Time: %d s"
+
 // Stats represent the statistics of a game
 type Stats struct {
 	KeyPresses      map[string]int `json:"key_presses"`
