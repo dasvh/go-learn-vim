@@ -58,7 +58,7 @@ func (sv *SelectionView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		sv.size = msg
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, sv.controls.Select) && !sv.List.IsFiltering():
+		case key.Matches(msg, sv.controls.Select) && !sv.List.IsFiltering() && sv.List.SelectedItem() != nil:
 			selected := sv.List.SelectedItem().(cl.Item)
 			return sv, sv.onSelect(selected)
 		case key.Matches(msg, sv.InsertControls.Insert) && !sv.List.IsFiltering():
