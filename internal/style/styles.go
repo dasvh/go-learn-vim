@@ -3,25 +3,29 @@ package style
 import "github.com/charmbracelet/lipgloss"
 
 var colours = struct {
-	GoBlue   lipgloss.Color
-	DarkBlue lipgloss.Color
-	Pink     lipgloss.Color
-	Green    lipgloss.Color
-	White    lipgloss.Color
-	Grey     lipgloss.Color
-	Red      lipgloss.Color
-	Yellow   lipgloss.Color
-	DarkGrey lipgloss.Color
+	GoBlue     lipgloss.Color
+	DarkBlue   lipgloss.Color
+	Pink       lipgloss.Color
+	Green      lipgloss.Color
+	White      lipgloss.Color
+	Grey       lipgloss.Color
+	Red        lipgloss.Color
+	Yellow     lipgloss.Color
+	DarkGrey   lipgloss.Color
+	LightPink  lipgloss.Color
+	LightGreen lipgloss.Color
 }{
-	GoBlue:   lipgloss.Color("#00ADD8"),
-	DarkBlue: lipgloss.Color("#113344"),
-	Pink:     lipgloss.Color("200"),
-	Green:    lipgloss.Color("120"),
-	White:    lipgloss.Color("15"),
-	Grey:     lipgloss.Color("236"),
-	Red:      lipgloss.Color("196"),
-	Yellow:   lipgloss.Color("226"),
-	DarkGrey: lipgloss.Color("236"),
+	GoBlue:     lipgloss.Color("#00ADD8"),
+	DarkBlue:   lipgloss.Color("#113344"),
+	Pink:       lipgloss.Color("200"),
+	Green:      lipgloss.Color("120"),
+	White:      lipgloss.Color("15"),
+	Grey:       lipgloss.Color("236"),
+	Red:        lipgloss.Color("196"),
+	Yellow:     lipgloss.Color("226"),
+	DarkGrey:   lipgloss.Color("236"),
+	LightPink:  lipgloss.Color("#FF1BA0"),
+	LightGreen: lipgloss.Color("#A0FF1B"),
 }
 
 // theme defines the color palette for the views components
@@ -69,8 +73,8 @@ var adventureTheme = struct {
 	TargetBg:        colours.White,
 	TargetReachedFg: colours.DarkBlue,
 	TargetReachedBg: colours.Pink,
-	WallFg:          colours.Red,
-	WallBg:          colours.DarkGrey,
+	WallFg:          colours.LightGreen,
+	WallBg:          colours.LightPink,
 }
 
 type Target struct {
@@ -97,8 +101,6 @@ var PlayerSelection = struct {
 	Title: lipgloss.NewStyle().
 		Foreground(theme.Primary).
 		Background(colours.DarkBlue).
-		PaddingLeft(3).
-		PaddingRight(3).
 		Bold(true),
 	Item: lipgloss.NewStyle().
 		Foreground(colours.Pink).
@@ -116,6 +118,39 @@ var PlayerSelection = struct {
 		PaddingLeft(2).
 		Bold(true),
 	FilterMatch: lipgloss.NewStyle().
+		Foreground(colours.Green),
+	DimmedItem: lipgloss.NewStyle().
+		Foreground(colours.Grey),
+}
+
+var LevelSelection = struct {
+	Title        lipgloss.Style
+	Item         lipgloss.Style
+	SelectedItem lipgloss.Style
+	FilterMatch  lipgloss.Style
+	DimmedItem   lipgloss.Style
+}{
+	Title: lipgloss.NewStyle().
+		Foreground(theme.Primary).
+		Background(colours.DarkBlue).
+		Bold(true),
+	Item: lipgloss.NewStyle().
+		Foreground(colours.Pink).
+		BorderLeft(true).
+		BorderStyle(lipgloss.Border{Left: itemIndicator}).
+		BorderForeground(colours.Pink).
+		MarginLeft(2).
+		PaddingLeft(1),
+	SelectedItem: lipgloss.NewStyle().
+		Foreground(colours.Green).
+		BorderLeft(true).
+		BorderStyle(lipgloss.Border{Left: selectedItemIndicator}).
+		BorderForeground(colours.Green).
+		MarginLeft(2).
+		PaddingLeft(2).
+		Bold(true),
+	FilterMatch: lipgloss.NewStyle().
+		Align(lipgloss.Center).
 		Foreground(colours.Green),
 	DimmedItem: lipgloss.NewStyle().
 		Foreground(colours.Grey),
