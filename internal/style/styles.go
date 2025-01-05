@@ -2,10 +2,6 @@ package style
 
 import "github.com/charmbracelet/lipgloss"
 
-const (
-	VeryPink = lipgloss.Color("200")
-)
-
 var colours = struct {
 	GoBlue   lipgloss.Color
 	DarkBlue lipgloss.Color
@@ -13,6 +9,9 @@ var colours = struct {
 	Green    lipgloss.Color
 	White    lipgloss.Color
 	Grey     lipgloss.Color
+	Red      lipgloss.Color
+	Yellow   lipgloss.Color
+	DarkGrey lipgloss.Color
 }{
 	GoBlue:   lipgloss.Color("#00ADD8"),
 	DarkBlue: lipgloss.Color("#113344"),
@@ -20,6 +19,9 @@ var colours = struct {
 	Green:    lipgloss.Color("120"),
 	White:    lipgloss.Color("15"),
 	Grey:     lipgloss.Color("236"),
+	Red:      lipgloss.Color("196"),
+	Yellow:   lipgloss.Color("226"),
+	DarkGrey: lipgloss.Color("236"),
 }
 
 // theme defines the color palette for the views components
@@ -51,6 +53,8 @@ var adventureTheme = struct {
 	TargetBg        lipgloss.Color
 	TargetReachedFg lipgloss.Color
 	TargetReachedBg lipgloss.Color
+	WallFg          lipgloss.Color
+	WallBg          lipgloss.Color
 }{
 	HeaderBg:        colours.DarkBlue,
 	FieldBg:         colours.DarkBlue,
@@ -58,13 +62,15 @@ var adventureTheme = struct {
 	HeaderBorderFg:  colours.GoBlue,
 	FieldBorderBg:   colours.GoBlue,
 	FieldBorderFg:   colours.DarkBlue,
-	PlayerFg:        VeryPink,
+	PlayerFg:        colours.Pink,
 	PlayerBg:        colours.Green,
 	TrailFg:         colours.White,
 	TargetFg:        colours.Pink,
 	TargetBg:        colours.White,
 	TargetReachedFg: colours.DarkBlue,
 	TargetReachedBg: colours.Pink,
+	WallFg:          colours.Red,
+	WallBg:          colours.DarkGrey,
 }
 
 type Target struct {
@@ -139,6 +145,7 @@ var Styles = struct {
 			Background lipgloss.Style
 			Player     Player
 			Target     Target
+			Wall       lipgloss.Style
 		}
 	}
 }{
@@ -188,6 +195,7 @@ var Styles = struct {
 			Background lipgloss.Style
 			Player     Player
 			Target     Target
+			Wall       lipgloss.Style
 		}
 	}{
 		Header: struct {
@@ -224,6 +232,7 @@ var Styles = struct {
 			Background lipgloss.Style
 			Player     Player
 			Target     Target
+			Wall       lipgloss.Style
 		}{
 			Border: lipgloss.NewStyle().
 				BorderStyle(lipgloss.RoundedBorder()).
@@ -239,7 +248,7 @@ var Styles = struct {
 					Blink(true),
 				Trail: lipgloss.NewStyle().
 					Foreground(adventureTheme.TrailFg).
-					Background(colours.Green).
+					Background(colours.DarkBlue).
 					Bold(true),
 			},
 			Target: Target{
@@ -256,6 +265,9 @@ var Styles = struct {
 					Bold(true).
 					Blink(true),
 			},
+			Wall: lipgloss.NewStyle().
+				Foreground(adventureTheme.WallFg).
+				Background(adventureTheme.WallBg),
 		},
 	},
 }
