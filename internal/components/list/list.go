@@ -64,10 +64,11 @@ func (l *List) View() string {
 
 // Item is a wrapper around the bubbles list.Item
 type Item struct {
-	Name        string
-	description string
+	Name    string
+	Details string
+	Number  int
 }
 
 func (i Item) Title() string       { return i.Name }
-func (i Item) Description() string { return i.description }
+func (i Item) Description() string { return i.Details }
 func (i Item) FilterValue() string { return i.Name }

@@ -25,6 +25,7 @@ type App struct {
 func NewApp(repo storage.GameRepository) *App {
 	screen := controllers.NewScreen()
 	game := controllers.NewGame(repo)
+	level := controllers.NewLevel()
 
 	hasIncompleteGame, err := repo.HasIncompleteGames()
 	if err != nil {
@@ -32,15 +33,16 @@ func NewApp(repo storage.GameRepository) *App {
 	}
 
 	screen.Register(models.MainMenuScreen, menus.NewMainMenu(hasIncompleteGame))
-	screen.Register(models.LoadGameScreen, menus.NewLoad(repo, game))
 	screen.Register(models.InfoMenuScreen, menus.NewInfoMenu())
 	screen.Register(models.VimInfoScreen, info.NewVimInfo())
 	screen.Register(models.MotionsInfoScreen, info.NewMotionsInfo())
+	screen.Register(models.LoadGameScreen, menus.NewLoad(repo, game))
 	screen.Register(models.NewGameScreen, menus.NewGameModes())
 	screen.Register(models.PlayerSelectionScreen, selection.NewPlayerSelection(game, models.NewGameScreen))
-	screen.Register(models.AdventureModeScreen, adventure.NewAdventure(game))
-	screen.Register(models.StatsScreen, leaderboards.NewStatsScreen(repo))
+	screen.Register(models.AdventureModeScreen, adventure.NewAdventure(game, level))
+	screen.Register(models.LevelSelectionScreen, selection.NewLevelSelection(level))
 	screen.Register(models.ScoresScreen, leaderboards.NewScoresScreen(repo))
+	screen.Register(models.StatsScreen, leaderboards.NewStatsScreen(repo))
 
 	return &App{
 		sc: screen,
@@ -66,6 +68,12 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	// pass the player from the player selection screen to the adventure mode screen
 	case models.SetPlayerMsg:
+		if model, ok := a.sc.Screens()[models.AdventureModeScreen].(*adventure.Adventure); ok {
+			model.Update(msg)
+		}
+		return a, nil
+	// pass the level from the level selection screen to the adventure mode screen to init the level
+	case models.SetLevelMsg:
 		if model, ok := a.sc.Screens()[models.AdventureModeScreen].(*adventure.Adventure); ok {
 			model.Update(msg)
 		}

@@ -11,7 +11,10 @@ import (
 )
 
 const (
-	StatsFormat = "Stats: Keystrokes: %d, Time: %d s"
+	MinLevelWidth  = 10
+	MinPlayerWidth = 10 + models.PlayerNameMaxLength
+	MinModeWidth   = 16
+	MinStatsWidth  = 30
 )
 
 // GameMap represents the game map of the adventure mode
@@ -77,7 +80,7 @@ func (av *AdventureView) RenderScreen() string {
 	gameMapBorderWidth := style.GetComponentWidth(av.GameMap.Border)
 
 	sections := []components.TextDisplay{av.Level, av.Player, av.Mode, av.Stats}
-	widths := calculateSectionWidths(av.Size.Width, topBorderWidth, 4)
+	widths := calculateSectionWidths(av.Size.Width, topBorderWidth)
 	positions := []lipgloss.Position{lipgloss.Left, lipgloss.Top, lipgloss.Center, lipgloss.Right}
 
 	topBar := renderTopBar(sections, widths, positions, style.Styles.Adventure.Header.Border)
@@ -111,7 +114,7 @@ func (av *AdventureView) SetMode(mode string) {
 
 // SetStats sets the stats text with keystrokes and time
 func (av *AdventureView) SetStats(keystrokes int, time int) {
-	av.Stats.SetText(StatsFormat, keystrokes, time)
+	av.Stats.SetText(models.StatsFormat, keystrokes, time)
 }
 
 // SetInfo sets the info text
@@ -123,7 +126,7 @@ func (av *AdventureView) SetInfo(info string) {
 func renderGameMap(gameMap GameMap, totalWidth int, bordersSpace int) string {
 	var lines []string
 
-	// Convert grid content to strings with proper spacing
+	// convert grid content to strings with proper spacing
 	for _, row := range gameMap.Field {
 		var lineRunes []string
 		for _, r := range row {
@@ -134,10 +137,7 @@ func renderGameMap(gameMap GameMap, totalWidth int, bordersSpace int) string {
 		lines = append(lines, lipgloss.JoinHorizontal(lipgloss.Left, lineRunes...))
 	}
 
-	// Join all lines with newlines
 	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
-
-	// Apply border style with proper width
 	return gameMap.Border.Width(totalWidth - bordersSpace).Render(content)
 }
 
@@ -162,22 +162,21 @@ func renderTopBar(sections []components.TextDisplay, widths []int, positions []l
 }
 
 // calculateSectionWidths calculates the width of each section in a top bar
-func calculateSectionWidths(totalWidth int, borderSpace int, numSections int) []int {
-	if numSections <= 0 {
-		return []int{}
-	}
+func calculateSectionWidths(totalWidth int, borderSpace int) []int {
+	sectionWidths := []int{MinLevelWidth, MinPlayerWidth, MinModeWidth, MinStatsWidth}
+	numSections := len(sectionWidths)
 
 	widthMinusBorders := totalWidth - borderSpace
 	baseWidth := widthMinusBorders / numSections
 	remainingSpace := widthMinusBorders % numSections
 
-	// Initialize widths with the base width
+	// set base width for each section
 	widths := make([]int, numSections)
 	for i := range widths {
-		widths[i] = baseWidth
+		widths[i] = max(baseWidth, sectionWidths[i])
 	}
 
-	// Distribute the remaining space among sections
+	// distribute remaining space
 	for i := 0; remainingSpace > 0; i++ {
 		widths[i%numSections]++
 		remainingSpace--

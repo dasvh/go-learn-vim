@@ -8,28 +8,40 @@ import (
 
 const levelNumberZero = 0
 
+// Zero represents level zero of the adventure mode
 type Zero struct {
-	grid           [][]rune
-	currentTarget  int
 	width          int
 	height         int
-	player         models.Position
-	targets        []models.Target
+	currentTarget  int
 	completed      bool
 	restore        bool
 	inProgress     bool
-	chars          *models.Characters
 	movementBlock  bool
-	blockEnds      time.Time
+	grid           [][]rune
+	chars          *models.Characters
+	player         models.Position
+	targets        []models.Target
 	targetBehavior models.TargetBehavior
+	blockEnds      time.Time
 }
 
-func NewLevelZero() (models.Level, int) {
+// NewLevelZero returns a new instance of models.Level zero
+func NewLevelZero() models.Level {
 	chars := &models.DefaultCharacters
 	return &Zero{
 		chars:          chars,
 		targetBehavior: NewCornerTargets(chars),
-	}, levelNumberZero
+	}
+}
+
+// Number returns the number of the level
+func (level0 *Zero) Number() int {
+	return levelNumberZero
+}
+
+// Description returns the description of the level
+func (level0 *Zero) Description() string {
+	return "Simple movement with hjkl keys"
 }
 
 // Init initializes the level with the given dimensions
@@ -40,8 +52,8 @@ func (level0 *Zero) Init(width, height int) {
 	level0.initializeGrid()
 }
 
-// UpdatePlayerAction handles player movement and Target completion
-func (level0 *Zero) UpdatePlayerAction(delta models.Position) models.PlayerMovement {
+// PlayerMove handles models.PlayerMovement and models.Target interaction
+func (level0 *Zero) PlayerMove(delta models.Position) models.PlayerMovement {
 	// block movement if cooldown is active
 	if level0.movementBlock && time.Now().Before(level0.blockEnds) {
 		return models.PlayerMovement{
@@ -73,7 +85,7 @@ func (level0 *Zero) UpdatePlayerAction(delta models.Position) models.PlayerMovem
 	}
 
 	currentTarget := level0.targets[level0.currentTarget]
-	// check if player has Reached the Target
+	// check if player has reached the target
 	if currentTarget.Position == newPos {
 		level0.targets[level0.currentTarget].Reached = true
 		if level0.currentTarget == level0.targetBehavior.GetTargetCount()-1 {
@@ -90,7 +102,7 @@ func (level0 *Zero) UpdatePlayerAction(delta models.Position) models.PlayerMovem
 		level0.currentTarget++
 		level0.initializeGrid()
 
-		// block movement for 500ms after reaching a Target
+		// block movement for 500ms after reaching a target
 		level0.movementBlock = true
 		level0.blockEnds = time.Now().Add(500 * time.Millisecond)
 
@@ -102,7 +114,7 @@ func (level0 *Zero) UpdatePlayerAction(delta models.Position) models.PlayerMovem
 		}
 	}
 
-	// update player Position
+	// update player position
 	level0.grid[level0.player.Y][level0.player.X] = level0.chars.Player.Trail.Rune
 	level0.grid[newPos.Y][newPos.X] = level0.chars.Player.Cursor.Rune
 	level0.player = newPos
@@ -115,7 +127,7 @@ func (level0 *Zero) UpdatePlayerAction(delta models.Position) models.PlayerMovem
 	}
 }
 
-// PlacePlayer places the player at the given Position
+// PlacePlayer places the player at the given models.Position
 func (level0 *Zero) PlacePlayer(position models.Position) {
 	if !level0.restore {
 		level0.player = position
@@ -129,27 +141,27 @@ func (level0 *Zero) Render() [][]rune {
 	return level0.grid
 }
 
-// GetStartPosition returns the starting player Position
+// GetStartPosition returns the starting player models.Position
 func (level0 *Zero) GetStartPosition() models.Position {
 	return models.Position{X: level0.width / 2, Y: level0.height / 2}
 }
 
-// GetCurrentPosition returns the currentTarget player Position
+// GetCurrentPosition returns the current player models.Position
 func (level0 *Zero) GetCurrentPosition() models.Position {
 	return level0.player
 }
 
-// GetTargets returns the Target positions
+// GetTargets returns the models.Target's for the level
 func (level0 *Zero) GetTargets() []models.Target {
 	return level0.targets
 }
 
-// GetCurrentTarget returns the currentTarget Target index
+// GetCurrentTarget returns the currentTarget
 func (level0 *Zero) GetCurrentTarget() int {
 	return level0.currentTarget
 }
 
-// GetInstructions returns the instructions for the currentTarget level
+// GetInstructions returns the instructions for the level
 func (level0 *Zero) GetInstructions() string {
 	return fmt.Sprintf("Instructions: Target %d/%d: Reach the X using hjkl keys", level0.currentTarget+1, level0.targetBehavior.GetTargetCount())
 }
@@ -164,7 +176,7 @@ func (level0 *Zero) IsCompleted() bool {
 	return level0.completed
 }
 
-// Restore a SavedLevel from a game state
+// Restore a models.SavedLevel from a game state
 func (level0 *Zero) Restore(state models.SavedLevel) error {
 	if state.Width <= 0 || state.Height <= 0 {
 		return fmt.Errorf("invalid dimensions in save state")
@@ -208,7 +220,7 @@ func (level0 *Zero) setDimensions(width, height int) {
 	}
 }
 
-// resetTargets resets the Target positions
+// resetTargets resets the targets positions
 func (level0 *Zero) resetTargets() {
 	level0.targets = level0.targetBehavior.DefineTargets(level0.width, level0.height)
 	level0.currentTarget = 0

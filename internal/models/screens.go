@@ -18,6 +18,11 @@ type SetPlayerMsg struct {
 	Player Player
 }
 
+// SetLevelMsg represents a message to set the level for the game modes
+type SetLevelMsg struct {
+	LevelNumber int
+}
+
 const (
 	// MainMenuScreen represents the main menu screen
 	MainMenuScreen Screen = iota
@@ -33,6 +38,8 @@ const (
 	NewGameScreen
 	// PlayerSelectionScreen represents the player selection screen
 	PlayerSelectionScreen
+	// LevelSelectionScreen represents the level selection screen
+	LevelSelectionScreen
 	// LoadGameScreen represents the load app screen
 	LoadGameScreen
 	// AdventureModeScreen represents the adventure app mode screen

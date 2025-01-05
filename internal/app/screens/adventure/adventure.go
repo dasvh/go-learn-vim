@@ -17,36 +17,32 @@ const gameMode = "Adventure"
 
 // Adventure represents the adventure mode
 type Adventure struct {
-	controls     Controls
-	stats        *models.Stats
-	levelManager *controllers.Level
-	gc           *controllers.Game
-	view         views.AdventureView
-	gridWidth    int
-	gridHeight   int
+	controls   Controls
+	stats      *models.Stats
+	lc         *controllers.Level
+	gc         *controllers.Game
+	view       views.AdventureView
+	gridWidth  int
+	gridHeight int
 }
 
 // NewAdventure creates a new Adventure instance
-func NewAdventure(gc *controllers.Game) *Adventure {
+func NewAdventure(gc *controllers.Game, lc *controllers.Level) *Adventure {
 	controls := NewBasicControls()
-	levelManager := controllers.NewLevel()
 	view := views.InitializeAdventureView()
 	view.SetMode(gameMode)
-	view.SetLevel(levelManager.GetLevelNumber())
 	view.SetStats(0, 0)
-	view.SetInfo(levelManager.GetCurrentLevel().GetInstructions())
 	view.Help = controls.BasicHelp()
-
 	return &Adventure{
-		controls:     controls,
-		stats:        models.NewStats(),
-		levelManager: levelManager,
-		gc:           gc,
-		view:         view,
+		controls: controls,
+		stats:    models.NewStats(),
+		lc:       lc,
+		gc:       gc,
+		view:     view,
 	}
 }
 
-// scalePosition scales a position based on the x and y scaling factors
+// scalePosition scales a models.Position based on the x and y scaling factors
 func scalePosition(pos models.Position, xScale, yScale float64) models.Position {
 	return models.Position{
 		X: int(float64(pos.X) * xScale),
@@ -55,27 +51,28 @@ func scalePosition(pos models.Position, xScale, yScale float64) models.Position 
 }
 
 func (a *Adventure) initializeLevel() {
-	err := a.levelManager.InitOrResizeLevel(a.gridWidth, a.gridHeight)
+	err := a.lc.InitOrResizeLevel(a.gridWidth, a.gridHeight)
 	if err != nil {
+		fmt.Println("Failed to initialize level:", err)
 		return
 	}
-	a.view.Level.SetText(fmt.Sprintf("Level: %d", a.levelManager.GetLevelNumber()))
-	a.view.Info.SetText(a.levelManager.GetCurrentLevel().GetInstructions())
+	a.view.Level.SetText(fmt.Sprintf("Level: %d", a.lc.GetLevelNumber()))
+	a.view.Info.SetText(a.lc.GetCurrentLevel().GetInstructions())
 }
 
-// Save saves the app gameState
+// Save saves the app models.AdventureGameState with models.Stats
 func (a *Adventure) Save() error {
 	gameState := models.AdventureGameState{
 		WindowSize: a.view.Size,
 		Level: models.SavedLevel{
-			Number:         a.levelManager.GetLevelNumber(),
+			Number:         a.lc.GetLevelNumber(),
 			Width:          a.gridWidth,
 			Height:         a.gridHeight,
-			PlayerPosition: a.levelManager.GetCurrentLevel().GetCurrentPosition(),
-			Targets:        a.levelManager.GetCurrentLevel().GetTargets(),
-			CurrentTarget:  a.levelManager.GetCurrentLevel().GetCurrentTarget(),
-			Completed:      a.levelManager.GetCurrentLevel().IsCompleted(),
-			InProgress:     a.levelManager.GetCurrentLevel().InProgress(),
+			PlayerPosition: a.lc.GetCurrentLevel().GetCurrentPosition(),
+			Targets:        a.lc.GetCurrentLevel().GetTargets(),
+			CurrentTarget:  a.lc.GetCurrentLevel().GetCurrentTarget(),
+			Completed:      a.lc.GetCurrentLevel().IsCompleted(),
+			InProgress:     a.lc.GetCurrentLevel().InProgress(),
 		},
 		Stats: models.Stats{
 			KeyPresses:      a.stats.KeyPresses,
@@ -86,8 +83,8 @@ func (a *Adventure) Save() error {
 	return a.gc.SaveGame(gameMode, gameState)
 }
 
-// Load creates a new Adventure instance from a saved app controllers
-func Load(gc *controllers.Game, gameState models.GameState, size tea.WindowSizeMsg) (*Adventure, error) {
+// Load creates a new Adventure instance from a saved models.GameState
+func Load(gc *controllers.Game, lc *controllers.Level, gameState models.GameState, size tea.WindowSizeMsg) (*Adventure, error) {
 	// Ensure the GameState is of the correct type
 	ags, ok := gameState.(models.AdventureGameState)
 	if !ok {
@@ -95,7 +92,6 @@ func Load(gc *controllers.Game, gameState models.GameState, size tea.WindowSizeM
 	}
 
 	controls := NewBasicControls()
-	levelManager := controllers.NewLevel()
 
 	gameView := views.InitializeAdventureView()
 	gameView.Size = size
@@ -103,15 +99,15 @@ func Load(gc *controllers.Game, gameState models.GameState, size tea.WindowSizeM
 	gameView.SetLevel(ags.Level.Number)
 	gameView.SetPlayer("Player")
 	gameView.SetStats(ags.Stats.TotalKeystrokes, ags.Stats.TimeElapsed)
-	gameView.SetInfo(levelManager.GetCurrentLevel().GetInstructions())
+	gameView.SetInfo(lc.GetCurrentLevel().GetInstructions())
 	gameView.Help = controls.BasicHelp()
 
 	adventure := &Adventure{
-		controls:     controls,
-		stats:        &ags.Stats,
-		levelManager: levelManager,
-		gc:           gc,
-		view:         gameView,
+		controls: controls,
+		stats:    &ags.Stats,
+		lc:       lc,
+		gc:       gc,
+		view:     gameView,
 	}
 
 	// update the grid dimensions
@@ -132,13 +128,13 @@ func Load(gc *controllers.Game, gameState models.GameState, size tea.WindowSizeM
 	ags.Level.Width = adventure.gridWidth
 	ags.Level.Height = adventure.gridHeight
 
-	if err := adventure.levelManager.RestoreLevel(ags.Level); err != nil {
+	if err := adventure.lc.RestoreLevel(ags.Level); err != nil {
 		return nil, fmt.Errorf("failed to load level gameSave: %w", err)
 	}
 
-	adventure.view.SetLevel(adventure.levelManager.GetLevelNumber())
+	adventure.view.SetLevel(adventure.lc.GetLevelNumber())
 	adventure.view.SetStats(adventure.stats.TotalKeystrokes, adventure.stats.TimeElapsed)
-	//adventure.view.SetInfo(adventure.levelManager.GetCurrentLevel().GetInstructions())
+	//adventure.view.SetInfo(adventure.lc.GetCurrentLevel().GetInstructions())
 
 	return adventure, nil
 }
@@ -158,6 +154,8 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case models.SetPlayerMsg:
 		a.view.SetPlayer(msg.Player.Name)
 		return a, nil
+	case models.SetLevelMsg:
+		a.initializeLevel()
 	case TickMsg:
 		a.stats.IncrementTime()
 		a.view.SetStats(a.stats.TotalKeystrokes, a.stats.TimeElapsed)
@@ -168,7 +166,6 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Width > 0 && msg.Height > 0 {
 			a.view.Size = msg
 			a.gridWidth, a.gridHeight = a.view.UpdateGridDimensions()
-			a.initializeLevel()
 		}
 	case tea.KeyMsg:
 		keyString := msg.String()
@@ -197,7 +194,7 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// update player action
-		result := a.levelManager.GetCurrentLevel().UpdatePlayerAction(delta)
+		result := a.lc.GetCurrentLevel().PlayerMove(delta)
 
 		// update app instructions
 		if result.InstructionMessage != "" {
@@ -227,7 +224,7 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View renders the entire app screen
 func (a *Adventure) View() string {
 	// render the game
-	game := a.levelManager.GetCurrentLevel().Render()
+	game := a.lc.GetCurrentLevel().Render()
 	a.view.GameMap.Field = game
 	return a.view.RenderScreen()
 }

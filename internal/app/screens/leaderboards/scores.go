@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/dasvh/go-learn-vim/internal/app/screens/selection"
 	"github.com/dasvh/go-learn-vim/internal/models"
 	"github.com/dasvh/go-learn-vim/internal/storage"
 	"github.com/dasvh/go-learn-vim/internal/views"
@@ -25,7 +24,7 @@ func NewScoresScreen(repo storage.GameRepository) *ScoresScreen {
 
 	tv.SetColumns([]table.Column{
 		{Title: "", Width: 3},
-		{Title: "Player", Width: selection.PlayerNameMaxLength},
+		{Title: "Player", Width: models.PlayerNameMaxLength},
 		{Title: "Level", Width: 5},
 		{Title: "Score", Width: 15},
 		{Title: "Date", Width: 20},

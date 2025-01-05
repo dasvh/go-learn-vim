@@ -22,6 +22,7 @@ type Characters struct {
 		Inactive Character
 		Reached  Character
 	}
+	Wall Character
 }
 
 // Style for the app characters
@@ -48,6 +49,7 @@ var DefaultCharacters = Characters{
 		Inactive: Character{'x', "x"},
 		Reached:  Character{'✓', "✓"},
 	},
+	Wall: Character{'#', "#"},
 }
 
 // ToDefaultCharacterStyle maps a rune to a default character style
@@ -63,6 +65,8 @@ func ToDefaultCharacterStyle(r rune) lipgloss.Style {
 		return style.Styles.Adventure.Map.Target.Inactive
 	case DefaultCharacters.Target.Reached.Rune:
 		return style.Styles.Adventure.Map.Target.Reached
+	case DefaultCharacters.Wall.Rune:
+		return style.Styles.Adventure.Map.Wall
 	default:
 		return style.Styles.Adventure.Map.Background
 	}

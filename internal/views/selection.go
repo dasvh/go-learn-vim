@@ -23,6 +23,7 @@ type SelectionView struct {
 	List           *cl.List
 	onSelect       func(item cl.Item) tea.Cmd
 	onInsert       func() tea.Cmd
+	withInsert     bool
 }
 
 // NewSelectionView creates a new SelectionView
@@ -44,6 +45,7 @@ func NewSelectionView(
 		List:           list,
 		onSelect:       onSelect,
 		onInsert:       onInsert,
+		withInsert:     onInsert != nil,
 	}
 }
 
@@ -58,7 +60,7 @@ func (sv *SelectionView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		sv.size = msg
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, sv.controls.Select) && !sv.List.IsFiltering():
+		case key.Matches(msg, sv.controls.Select) && !sv.List.IsFiltering() && sv.List.SelectedItem() != nil:
 			selected := sv.List.SelectedItem().(cl.Item)
 			return sv, sv.onSelect(selected)
 		case key.Matches(msg, sv.InsertControls.Insert) && !sv.List.IsFiltering():
@@ -82,15 +84,8 @@ func (sv *SelectionView) View() string {
 		sv.renderCentered(sv.title.Main),
 		sv.renderCentered(sv.title.Subtitle),
 		sv.renderCentered(sv.List.View()),
+		sv.renderCentered(sv.Help.ShortHelpView(sv.helpBindings())),
 	}
-
-	helpBindings := []key.Binding{
-		sv.InsertControls.Select,
-		sv.InsertControls.Insert,
-		sv.controls.Quit,
-	}
-
-	views = append(views, sv.renderCentered(sv.Help.ShortHelpView(helpBindings)))
 
 	if sv.TextInput != nil {
 		views = append(views, "\n"+sv.renderCentered(sv.TextInput.View()))
@@ -111,4 +106,22 @@ func (sv *SelectionView) renderCentered(content string) string {
 		Width(sv.size.Width).
 		Align(lipgloss.Center).
 		Render(content)
+}
+
+// helpBindings returns the help bindings
+func (sv *SelectionView) helpBindings() []key.Binding {
+	var bindings []key.Binding
+
+	if sv.withInsert {
+		bindings = append(bindings,
+			sv.controls.Select,
+			sv.InsertControls.Insert,
+			sv.controls.Quit)
+	} else {
+		bindings = append(bindings,
+			sv.controls.Select,
+			sv.controls.Quit)
+	}
+
+	return bindings
 }

@@ -52,7 +52,7 @@ func (m *Mode) HandleSelection() tea.Cmd {
 
 	switch selected.Label {
 	case ButtonAdventure:
-		return models.ChangeScreen(models.AdventureModeScreen)
+		return models.ChangeScreen(models.LevelSelectionScreen)
 	default:
 		return nil
 	}
