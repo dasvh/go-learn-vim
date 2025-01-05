@@ -101,6 +101,8 @@ var PlayerSelection = struct {
 	Title: lipgloss.NewStyle().
 		Foreground(theme.Primary).
 		Background(colours.DarkBlue).
+		Width(40).
+		Align(lipgloss.Center).
 		Bold(true),
 	Item: lipgloss.NewStyle().
 		Foreground(colours.Pink).
@@ -124,15 +126,19 @@ var PlayerSelection = struct {
 }
 
 var LevelSelection = struct {
-	Title        lipgloss.Style
-	Item         lipgloss.Style
-	SelectedItem lipgloss.Style
-	FilterMatch  lipgloss.Style
-	DimmedItem   lipgloss.Style
+	Title           lipgloss.Style
+	Item            lipgloss.Style
+	SelectedItem    lipgloss.Style
+	Details         lipgloss.Style
+	SelectedDetails lipgloss.Style
+	FilterMatch     lipgloss.Style
+	DimmedItem      lipgloss.Style
 }{
 	Title: lipgloss.NewStyle().
 		Foreground(theme.Primary).
 		Background(colours.DarkBlue).
+		Width(40).
+		Align(lipgloss.Center).
 		Bold(true),
 	Item: lipgloss.NewStyle().
 		Foreground(colours.Pink).
@@ -147,6 +153,15 @@ var LevelSelection = struct {
 		BorderStyle(lipgloss.Border{Left: selectedItemIndicator}).
 		BorderForeground(colours.Green).
 		MarginLeft(2).
+		PaddingLeft(2).
+		Bold(true),
+	Details: lipgloss.NewStyle().
+		Foreground(colours.LightPink).
+		MarginLeft(3).
+		PaddingLeft(1),
+	SelectedDetails: lipgloss.NewStyle().
+		Foreground(colours.LightGreen).
+		MarginLeft(3).
 		PaddingLeft(2).
 		Bold(true),
 	FilterMatch: lipgloss.NewStyle().
@@ -192,7 +207,7 @@ var Styles = struct {
 		Background(theme.BgLight).
 		Height(1).
 		Width(45).
-		MarginBottom(2).
+		MarginBottom(1).
 		Bold(true).
 		Blink(true).
 		Align(lipgloss.Center),
