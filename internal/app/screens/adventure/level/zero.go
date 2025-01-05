@@ -26,12 +26,22 @@ type Zero struct {
 }
 
 // NewLevelZero returns a new instance of models.Level zero
-func NewLevelZero() (models.Level, int) {
+func NewLevelZero() models.Level {
 	chars := &models.DefaultCharacters
 	return &Zero{
 		chars:          chars,
 		targetBehavior: NewCornerTargets(chars),
-	}, levelNumberZero
+	}
+}
+
+// Number returns the number of the level
+func (level0 *Zero) Number() int {
+	return levelNumberZero
+}
+
+// Description returns the description of the level
+func (level0 *Zero) Description() string {
+	return "Simple movement with hjkl keys"
 }
 
 // Init initializes the level with the given dimensions

@@ -22,6 +22,7 @@ type PlayerSelection struct {
 	inInputMode bool
 	textInput   textinput.Model
 	players     []models.Player
+	items       []cl.Item
 }
 
 // NewPlayerSelection creates a new PlayerSelection screen.
@@ -39,6 +40,7 @@ func NewPlayerSelection(gc *controllers.Game, gameScreen models.Screen) *PlayerS
 		gameScreen: gameScreen,
 		textInput:  textinput.New(),
 		players:    players,
+		items:      playerItems,
 	}
 
 	ps.textInput.Prompt = "Enter new player name: "
@@ -48,15 +50,9 @@ func NewPlayerSelection(gc *controllers.Game, gameScreen models.Screen) *PlayerS
 
 // setSelectionView sets the view of the player selection screen
 func (ps *PlayerSelection) setSelectionView() {
-	items := make([]cl.Item, len(ps.players))
-
-	for i, player := range ps.players {
-		items[i] = cl.Item{Name: player.Name}
-	}
-
 	width := ps.size.Width
-	height := ps.size.Height - 15
-	playerList := cl.NewList(items, width, height,
+	height := ps.size.Height / 2
+	playerList := cl.NewList(ps.items, width, height,
 		cl.WithItemsIdentifiers("Select a player or create a new one", "player", "players"),
 		cl.WithDisableQuitKeybindings(),
 		cl.WithShowDescription(false),
@@ -68,7 +64,7 @@ func (ps *PlayerSelection) setSelectionView() {
 	)
 
 	ps.view = views.NewSelectionView(
-		"PlayerSelection selection",
+		"Player Selection",
 		playerList,
 		&ps.textInput,
 		ps.handleSelect,
