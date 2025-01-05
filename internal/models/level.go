@@ -2,6 +2,8 @@ package models
 
 // Level represents a level in the adventure mode
 type Level interface {
+	Number() int
+	Description() string
 	Init(width, height int)
 	PlayerMove(position Position) PlayerMovement
 	PlacePlayer(position Position)

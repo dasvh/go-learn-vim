@@ -6,58 +6,84 @@ import (
 	"github.com/dasvh/go-learn-vim/internal/models"
 )
 
+// Level is a controller for level related actions
 type Level struct {
-	currentLevel models.Level
-	levelNumber  int
+	levels  map[int]models.Level
+	current models.Level
 }
 
+// NewLevel creates a new Level controller with levels
 func NewLevel() *Level {
-	zero, number := level.NewLevelZero()
 	return &Level{
-		currentLevel: zero,
-		levelNumber:  number,
+		levels: map[int]models.Level{
+			level.NewLevelZero().Number(): level.NewLevelZero(),
+			level.NewLevelOne().Number():  level.NewLevelOne(),
+		},
 	}
 }
 
+// GetLevels returns all levels
+func (lc *Level) GetLevels() map[int]models.Level {
+	return lc.levels
+}
+
+// GetLevelsCount returns the number of levels
+func (lc *Level) GetLevelsCount() int {
+	return len(lc.levels)
+}
+
+// SetLevel sets the current level to the given level
+func (lc *Level) SetLevel(lvl models.Level) {
+	lc.current = lvl
+}
+
+// InitCurrentLevel initializes the current level with the given width and height
 func (lc *Level) InitCurrentLevel(width, height int) {
-	lc.currentLevel.Init(width, height)
+	lc.current.Init(width, height)
 }
 
+// GetCurrentLevel returns the current level
 func (lc *Level) GetCurrentLevel() models.Level {
-	return lc.currentLevel
+	return lc.current
 }
 
+// GetLevelNumber returns the number of the current level
 func (lc *Level) GetLevelNumber() int {
-	return lc.levelNumber
+	return lc.current.Number()
 }
 
+// RestoreLevel restores the level state from a saved state
 func (lc *Level) RestoreLevel(state models.SavedLevel) error {
 	if len(state.Targets) == 0 {
 		return fmt.Errorf("invalid save state: no targets found")
 	}
 
-	zero, number := level.NewLevelZero()
-	lc.currentLevel = zero
-	lc.levelNumber = number
+	lvl := level.NewLevelZero()
+	lc.current = lvl
 
-	return lc.currentLevel.Restore(state)
+	return lc.current.Restore(state)
 }
 
+// InitOrResizeLevel initializes or resizes the current level with the given width and height
 func (lc *Level) InitOrResizeLevel(width, height int) error {
-	if !lc.currentLevel.InProgress() {
+	if lc.current == nil {
+		return fmt.Errorf("no level found")
+	}
+
+	if !lc.current.InProgress() {
 		lc.InitCurrentLevel(width, height)
 		return nil
 	}
 
 	params := models.SavedLevel{
-		Number:         lc.levelNumber,
+		Number:         lc.current.Number(),
 		Width:          width,
 		Height:         height,
-		PlayerPosition: lc.currentLevel.GetCurrentPosition(),
-		Targets:        lc.currentLevel.GetTargets(),
-		CurrentTarget:  lc.currentLevel.GetCurrentTarget(),
-		Completed:      lc.currentLevel.IsCompleted(),
-		InProgress:     lc.currentLevel.InProgress(),
+		PlayerPosition: lc.current.GetCurrentPosition(),
+		Targets:        lc.current.GetTargets(),
+		CurrentTarget:  lc.current.GetCurrentTarget(),
+		Completed:      lc.current.IsCompleted(),
+		InProgress:     lc.current.InProgress(),
 	}
-	return lc.currentLevel.Restore(params)
+	return lc.current.Restore(params)
 }
