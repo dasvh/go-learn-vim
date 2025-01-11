@@ -58,7 +58,7 @@ func (m *Main) HandleSelection() tea.Cmd {
 	case ButtonInfo:
 		return models.ChangeScreen(models.InfoMenuScreen)
 	case ButtonLoad:
-		return models.ChangeScreen(models.LoadGameScreen)
+		return models.ChangeScreen(models.LoadSaveSelectionScreen)
 	case ButtonNew:
 		return models.ChangeScreen(models.PlayerSelectionScreen)
 	case ButtonScores:

@@ -54,13 +54,16 @@ func (lc *Level) GetLevelNumber() int {
 
 // RestoreLevel restores the level state from a saved state
 func (lc *Level) RestoreLevel(state models.SavedLevel) error {
-	if len(state.Targets) == 0 {
-		return fmt.Errorf("invalid save state: no targets found")
+	if state.Width <= 0 || state.Height <= 0 {
+		return fmt.Errorf("invalid level dimensions in save state")
 	}
 
-	lvl := level.NewLevelZero()
-	lc.current = lvl
+	lvl, exists := lc.levels[state.Number]
+	if !exists {
+		return fmt.Errorf("level %d not found", state.Number)
+	}
 
+	lc.current = lvl
 	return lc.current.Restore(state)
 }
 
