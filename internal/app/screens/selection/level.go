@@ -29,7 +29,7 @@ func NewLevelSelection(lc *controllers.Level) *LevelSelection {
 		items[i] = cl.Item{
 			Name:    "Level " + strconv.Itoa(n),
 			Details: level.Description(),
-			Number:  5,
+			Number:  n,
 		}
 	}
 	return &LevelSelection{
@@ -50,6 +50,8 @@ func (ls *LevelSelection) setSelectionView() {
 		cl.WithTitleStyle(style.LevelSelection.Title),
 		cl.WithSelectedTitleStyle(style.LevelSelection.SelectedItem),
 		cl.WithNormalTitleStyle(style.LevelSelection.Item),
+		cl.WithSelectedDescriptionStyle(style.LevelSelection.SelectedDetails),
+		cl.WithNormalDescriptionStyle(style.LevelSelection.Details),
 		cl.WithFilterMatchStyle(style.LevelSelection.FilterMatch),
 		cl.WithDimmedTitleStyle(style.LevelSelection.DimmedItem),
 	)

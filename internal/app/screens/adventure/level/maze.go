@@ -146,3 +146,13 @@ func filterWalls(walls []models.Position, predicate func(models.Position) bool) 
 	}
 	return result
 }
+
+// isWall checks if a position is a wall in the Maze
+func (m *Maze) isWall(pos models.Position) bool {
+	for _, wall := range m.walls {
+		if wall.X == pos.X && wall.Y == pos.Y {
+			return true
+		}
+	}
+	return false
+}

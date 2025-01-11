@@ -17,6 +17,7 @@ type AdventureGameState struct {
 	WindowSize tea.WindowSizeMsg `json:"window_size"`
 	Level      SavedLevel        `json:"level"`
 	Stats      Stats             `json:"stats"`
+	SaveID     string            `json:"save_id"`
 }
 
 // IsCompleted returns true if the level is completed
@@ -54,6 +55,7 @@ func (gs *GameSave) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(aux.GameState, &ags); err != nil {
 			return fmt.Errorf("failed to decode AdventureGameState: %w", err)
 		}
+		ags.SaveID = aux.ID
 		gs.GameState = ags
 	default:
 		return fmt.Errorf("unsupported game mode: %s", aux.GameMode)

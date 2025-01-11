@@ -24,6 +24,7 @@ type Adventure struct {
 	view       views.AdventureView
 	gridWidth  int
 	gridHeight int
+	saveID     string
 }
 
 // NewAdventure creates a new Adventure instance
@@ -74,13 +75,10 @@ func (a *Adventure) Save() error {
 			Completed:      a.lc.GetCurrentLevel().IsCompleted(),
 			InProgress:     a.lc.GetCurrentLevel().InProgress(),
 		},
-		Stats: models.Stats{
-			KeyPresses:      a.stats.KeyPresses,
-			TotalKeystrokes: a.stats.TotalKeystrokes,
-			TimeElapsed:     a.stats.TimeElapsed,
-		},
+		Stats:  *a.stats,
+		SaveID: a.saveID,
 	}
-	return a.gc.SaveGame(gameMode, gameState)
+	return a.gc.SaveGame(gameMode, gameState, a.saveID)
 }
 
 // Load creates a new Adventure instance from a saved models.GameState
@@ -92,15 +90,8 @@ func Load(gc *controllers.Game, lc *controllers.Level, gameState models.GameStat
 	}
 
 	controls := NewBasicControls()
-
 	gameView := views.InitializeAdventureView()
 	gameView.Size = size
-	gameView.SetMode(gameMode)
-	gameView.SetLevel(ags.Level.Number)
-	gameView.SetPlayer("Player")
-	gameView.SetStats(ags.Stats.TotalKeystrokes, ags.Stats.TimeElapsed)
-	gameView.SetInfo(lc.GetCurrentLevel().GetInstructions())
-	gameView.Help = controls.BasicHelp()
 
 	adventure := &Adventure{
 		controls: controls,
@@ -108,18 +99,14 @@ func Load(gc *controllers.Game, lc *controllers.Level, gameState models.GameStat
 		lc:       lc,
 		gc:       gc,
 		view:     gameView,
+		saveID:   ags.SaveID,
 	}
-
 	// update the grid dimensions
 	adventure.gridWidth, adventure.gridHeight = adventure.view.UpdateGridDimensions()
 
 	// calculate scaling factors
 	xScale := float64(size.Width) / float64(ags.WindowSize.Width)
 	yScale := float64(size.Height) / float64(ags.WindowSize.Height)
-
-	// debug info
-	debugString := fmt.Sprintf("size: %+v, xScale: %+v yScale: %+v, gameSave.size: %+v", size, xScale, yScale, ags.WindowSize)
-	adventure.view.SetInfo(debugString)
 
 	// scale the player position based on the new grid dimensions
 	ags.Level.PlayerPosition = scalePosition(ags.Level.PlayerPosition, xScale, yScale)
@@ -132,9 +119,10 @@ func Load(gc *controllers.Game, lc *controllers.Level, gameState models.GameStat
 		return nil, fmt.Errorf("failed to load level gameSave: %w", err)
 	}
 
+	adventure.view.SetMode(gameMode)
 	adventure.view.SetLevel(adventure.lc.GetLevelNumber())
 	adventure.view.SetStats(adventure.stats.TotalKeystrokes, adventure.stats.TimeElapsed)
-	//adventure.view.SetInfo(adventure.lc.GetCurrentLevel().GetInstructions())
+	adventure.view.SetInfo(adventure.lc.GetCurrentLevel().GetInstructions())
 
 	return adventure, nil
 }
@@ -163,9 +151,12 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return TickMsg(t)
 		})
 	case tea.WindowSizeMsg:
-		if msg.Width > 0 && msg.Height > 0 {
+		if msg.Width != a.view.Size.Width || msg.Height != a.view.Size.Height {
 			a.view.Size = msg
 			a.gridWidth, a.gridHeight = a.view.UpdateGridDimensions()
+			if a.lc.GetCurrentLevel() != nil {
+				a.initializeLevel()
+			}
 		}
 	case tea.KeyMsg:
 		keyString := msg.String()

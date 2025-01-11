@@ -6,7 +6,10 @@ import (
 	"time"
 )
 
-const levelNumberOne = 1
+const (
+	levelNumberOne    = 1
+	suggestedMazeSize = 40
+)
 
 // One represents level one of the adventure mode
 type One struct {
@@ -34,7 +37,7 @@ func NewLevelOne() models.Level {
 	return &One{
 		chars:          chars,
 		totalMazes:     2,
-		seeds:          []int64{42, 69},
+		seeds:          []int64{42, 73},
 		targetBehavior: []*MazeTargets{},
 	}
 }
@@ -51,35 +54,17 @@ func (level1 *One) Description() string {
 
 // Init initializes the level with the given dimensions
 func (level1 *One) Init(width, height int) {
+	level1.restore = false
 	level1.inProgress = true
 	level1.currentMaze = 0
-
-	maxMazeSize := min(width/2, height)
-
-	if maxMazeSize < 5 {
-		panic(fmt.Sprintf("Grid too small for mazes: Width=%d, Height=%d", width, height))
-	}
-
-	mazeSize := maxMazeSize
-
-	// offsets
-	paddingBetweenMazes := 3
-	maze1OffsetX := (width - 2*mazeSize - paddingBetweenMazes) / 2
-	maze2OffsetX := maze1OffsetX + mazeSize + paddingBetweenMazes
-	centerY := (height - mazeSize) / 2
-
-	level1.mazes = []*Maze{
-		NewMaze(mazeSize, level1.seeds[0], maze1OffsetX, centerY, 3),
-		NewMaze(mazeSize, level1.seeds[1], maze2OffsetX, centerY, 2),
-	}
-	level1.targetBehavior = []*MazeTargets{
-		NewMazeTargets(level1.chars, level1.mazes[0]),
-		NewMazeTargets(level1.chars, level1.mazes[1]),
-	}
-
 	level1.width = width
 	level1.height = height
 	level1.setDimensions(width, height)
+
+	if err := level1.setupMazesAndTargets(width, height); err != nil {
+		panic(fmt.Sprintf("Failed to initialize level: %v", err))
+	}
+
 	level1.resetTargets()
 	level1.initializeGrid()
 }
@@ -196,6 +181,60 @@ func (level1 *One) Restore(state models.SavedLevel) error {
 	}
 
 	level1.restore = true
+	level1.width = state.Width
+	level1.height = state.Height
+	level1.setDimensions(state.Width, state.Height)
+
+	if err := level1.setupMazesAndTargets(state.Width, state.Height); err != nil {
+		return err
+	}
+
+	level1.currentMaze = state.CurrentTarget
+	level1.completed = state.Completed
+	level1.inProgress = state.InProgress
+
+	// recalculate player position based on the current maze
+	maze := level1.mazes[level1.currentMaze]
+	relativeX := state.PlayerPosition.X - maze.offsetX
+	relativeY := state.PlayerPosition.Y - maze.offsetY
+	relativePos := models.Position{X: relativeX, Y: relativeY}
+
+	if relativeX >= 0 && relativeX < maze.width &&
+		relativeY >= 0 && relativeY < maze.height &&
+		!maze.isWall(relativePos) {
+		level1.player = models.Position{
+			X: relativeX + maze.offsetX,
+			Y: relativeY + maze.offsetY,
+		}
+	} else {
+		// fallback to starting position
+		level1.player = level1.GetStartPosition()
+	}
+
+	level1.resetTargets()
+	level1.initializeGrid()
+	return nil
+}
+
+// setupMazesAndTargets sets up the mazes and target behaviors for the level
+func (level1 *One) setupMazesAndTargets(width, height int) error {
+	maxMazeSize, err := calculateMaxMazeSize(width, height)
+	if err != nil {
+		return err
+	}
+
+	maze1OffsetX, maze2OffsetX, centerY := calculateMazeOffsets(width, height, maxMazeSize)
+
+	level1.mazes = []*Maze{
+		NewMaze(maxMazeSize, level1.seeds[0], maze1OffsetX, centerY, 3),
+		NewMaze(maxMazeSize, level1.seeds[1], maze2OffsetX, centerY, 2),
+	}
+
+	level1.targetBehavior = []*MazeTargets{
+		NewMazeTargets(level1.chars, level1.mazes[0]),
+		NewMazeTargets(level1.chars, level1.mazes[1]),
+	}
+
 	return nil
 }
 
@@ -236,4 +275,27 @@ func (level1 *One) setDimensions(width, height int) {
 // resetTargets sets up the targets for the current maze
 func (level1 *One) resetTargets() {
 	level1.targets = level1.targetBehavior[level1.currentMaze].DefineTargets()
+}
+
+// calculateMaxMazeSize calculates the maximum maze size based on the grid dimensions
+func calculateMaxMazeSize(width, height int) (int, error) {
+	maxMazeSize := min(width/2, height)
+	if maxMazeSize < 5 {
+		return 0, fmt.Errorf("grid too small for mazes: width=%d, height=%d", width, height)
+	}
+
+	// enforce a maximum maze size for gameplay
+	if maxMazeSize > suggestedMazeSize {
+		maxMazeSize = suggestedMazeSize
+	}
+	return maxMazeSize, nil
+}
+
+// calculateMazeOffsets computes offsets for the two mazes
+func calculateMazeOffsets(width, height, maxMazeSize int) (int, int, int) {
+	paddingBetweenMazes := 3
+	maze1OffsetX := (width - 2*maxMazeSize - paddingBetweenMazes) / 2
+	maze2OffsetX := maze1OffsetX + maxMazeSize + paddingBetweenMazes
+	centerY := (height - maxMazeSize) / 2
+	return maze1OffsetX, maze2OffsetX, centerY
 }

@@ -40,8 +40,8 @@ const (
 	PlayerSelectionScreen
 	// LevelSelectionScreen represents the level selection screen
 	LevelSelectionScreen
-	// LoadGameScreen represents the load app screen
-	LoadGameScreen
+	// LoadSaveSelectionScreen represents the load save screen
+	LoadSaveSelectionScreen
 	// AdventureModeScreen represents the adventure app mode screen
 	AdventureModeScreen
 	// StatsScreen represents the stats screen

@@ -17,6 +17,8 @@ import (
 // and the window size message
 type App struct {
 	sc   *controllers.Screen
+	gc   *controllers.Game
+	lc   *controllers.Level
 	size tea.WindowSizeMsg
 }
 
@@ -27,16 +29,17 @@ func NewApp(repo storage.GameRepository) *App {
 	game := controllers.NewGame(repo)
 	level := controllers.NewLevel()
 
-	hasIncompleteGame, err := repo.HasIncompleteGames()
-	if err != nil {
-		fmt.Println("Failed to check for app saves + ", err)
+	app := &App{
+		sc: screen,
+		gc: game,
+		lc: level,
 	}
 
-	screen.Register(models.MainMenuScreen, menus.NewMainMenu(hasIncompleteGame))
+	screen.Register(models.MainMenuScreen, menus.NewMainMenu(repo.HasIncompleteGames()))
 	screen.Register(models.InfoMenuScreen, menus.NewInfoMenu())
 	screen.Register(models.VimInfoScreen, info.NewVimInfo())
 	screen.Register(models.MotionsInfoScreen, info.NewMotionsInfo())
-	screen.Register(models.LoadGameScreen, menus.NewLoad(repo, game))
+	screen.Register(models.LoadSaveSelectionScreen, selection.NewSaveSelection(repo, app.handleSaveSelection))
 	screen.Register(models.NewGameScreen, menus.NewGameModes())
 	screen.Register(models.PlayerSelectionScreen, selection.NewPlayerSelection(game, models.NewGameScreen))
 	screen.Register(models.AdventureModeScreen, adventure.NewAdventure(game, level))
@@ -44,9 +47,32 @@ func NewApp(repo storage.GameRepository) *App {
 	screen.Register(models.ScoresScreen, leaderboards.NewScoresScreen(repo))
 	screen.Register(models.StatsScreen, leaderboards.NewStatsScreen(repo))
 
-	return &App{
-		sc: screen,
+	return app
+}
+
+// handleSaveSelection handles the selection of a save and loads the adventure game
+func (a *App) handleSaveSelection(save models.GameSave) tea.Cmd {
+	adventureState, ok := save.GameState.(models.AdventureGameState)
+	if !ok {
+		fmt.Println("Invalid game state type in save:", save.GameState)
+		return nil
 	}
+
+	// pass SaveID to adventure game
+	adventureState.SaveID = save.ID
+
+	loadedAdventure, err := adventure.Load(a.gc, a.lc, adventureState, a.size)
+	if err != nil {
+		fmt.Printf("Failed to load adventure: %v\n", err)
+		return nil
+	}
+
+	return tea.Batch(
+		func() tea.Msg { return models.SetPlayerMsg{Player: save.Player} },
+		func() tea.Msg {
+			return models.ScreenTransitionMsg{Screen: models.AdventureModeScreen, Model: loadedAdventure}
+		},
+	)
 }
 
 // Init initializes the current app views and returns any initial commands
@@ -66,8 +92,10 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-	// pass the player from the player selection screen to the adventure mode screen
 	case models.SetPlayerMsg:
+		// set the player for the game controller
+		a.gc.SetPlayer(msg.Player)
+		// pass the player to the adventure mode screen
 		if model, ok := a.sc.Screens()[models.AdventureModeScreen].(*adventure.Adventure); ok {
 			model.Update(msg)
 		}

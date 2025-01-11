@@ -8,7 +8,7 @@ type GameRepository interface {
 
 	SaveGame(save models.GameSave) error
 	LoadGame(gameID string) (models.GameSave, error)
-	HasIncompleteGames() (bool, error)
+	HasIncompleteGames() bool
 	IncompleteGames() ([]models.GameSave, error)
 
 	LoadGameState(gameID string) (models.GameState, error)

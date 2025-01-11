@@ -52,13 +52,17 @@ func (gc *Game) SetPlayer(player models.Player) {
 }
 
 // SaveGame saves the current game state
-func (gc *Game) SaveGame(mode string, gameState models.GameState) error {
+func (gc *Game) SaveGame(mode string, gameState models.GameState, saveID string) error {
 	if gc.currentPlayer == nil {
 		return fmt.Errorf("no player selected")
 	}
 
+	if saveID == "" {
+		saveID = uuid.NewString()
+	}
+
 	gameSave := models.GameSave{
-		ID:        uuid.NewString(),
+		ID:        saveID,
 		Player:    *gc.currentPlayer,
 		Timestamp: time.Now(),
 		GameMode:  mode,

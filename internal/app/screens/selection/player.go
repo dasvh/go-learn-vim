@@ -88,7 +88,6 @@ func (ps *PlayerSelection) handleInsert() tea.Cmd {
 func (ps *PlayerSelection) handleSelect(item cl.Item) tea.Cmd {
 	for _, player := range ps.players {
 		if player.Name == item.Name {
-			ps.gc.SetPlayer(player)
 			// return a batch command to change the screen and set the player
 			return tea.Batch(
 				models.ChangeScreen(ps.gameScreen),
