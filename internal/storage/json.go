@@ -82,20 +82,20 @@ func (repo *JSONRepository) LoadGame(gameID string) (models.GameSave, error) {
 }
 
 // HasIncompleteGames returns whether there are any incomplete games
-func (repo *JSONRepository) HasIncompleteGames() (bool, error) {
+func (repo *JSONRepository) HasIncompleteGames() bool {
 	file, err := os.Open(repo.filePath)
 	if err != nil {
-		return false, fmt.Errorf("failed to open file: %w", err)
+		return false
 	}
 	defer file.Close()
 
 	for _, save := range repo.data.Saves {
 		if !save.GameState.IsCompleted() {
-			return true, nil
+			return true
 		}
 	}
 
-	return false, nil
+	return false
 }
 
 // IncompleteGames returns all incomplete games
