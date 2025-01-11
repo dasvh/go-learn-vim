@@ -11,6 +11,7 @@ import (
 	ct "github.com/dasvh/go-learn-vim/internal/components/table"
 	"github.com/dasvh/go-learn-vim/internal/models"
 	"github.com/dasvh/go-learn-vim/internal/style"
+	"strconv"
 )
 
 // TableView represents a view that displays a table using the bubbles table component
@@ -20,6 +21,7 @@ type TableView struct {
 	tableControls ct.Controls
 	help          help.Model
 	table         table.Model
+	onSelect      func(row int) tea.Cmd
 }
 
 // NewTableView creates a new TableView
@@ -31,6 +33,11 @@ func NewTableView(subtitle string) *TableView {
 		help:          help.New(),
 		tableControls: ct.NewTableControls(),
 	}
+}
+
+// SetOnSelect sets the onSelect function
+func (tv *TableView) SetOnSelect(onSelect func(index int) tea.Cmd) {
+	tv.onSelect = onSelect
 }
 
 // SetColumns sets the columns of the TableView
@@ -65,7 +72,16 @@ func (tv *TableView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, tv.tableControls.GotoBottom):
 			tv.table.GotoBottom()
 		case key.Matches(msg, tv.tableControls.Select):
-			fmt.Println("Row selected:", tv.table.SelectedRow())
+			row := tv.table.SelectedRow()
+			index, err := strconv.Atoi(row[0])
+			if err != nil {
+				fmt.Println("Error converting row to int:", err)
+				return tv, nil
+			}
+			if tv.onSelect != nil {
+				return tv, tv.onSelect(index)
+			}
+			return tv, nil
 		case key.Matches(msg, tv.tableControls.Back):
 			return tv, models.ChangeScreen(models.MainMenuScreen)
 		case key.Matches(msg, tv.tableControls.Quit):
