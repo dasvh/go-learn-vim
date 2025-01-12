@@ -20,10 +20,10 @@ func (ct *CornerTargets) DefineTargets(width, height int) []models.Target {
 	offsetY := int(float64(height) * 0.2)
 
 	return []models.Target{
-		{models.Position{X: offsetX, Y: offsetY}, false},
-		{models.Position{X: width - offsetX - 1, Y: offsetY}, false},
-		{models.Position{X: offsetX, Y: height - offsetY - 1}, false},
-		{models.Position{X: width - offsetX - 1, Y: height - offsetY - 1}, false},
+		{Position: models.Position{X: offsetX, Y: offsetY}, Reached: false},
+		{Position: models.Position{X: width - offsetX - 1, Y: offsetY}, Reached: false},
+		{Position: models.Position{X: offsetX, Y: height - offsetY - 1}, Reached: false},
+		{Position: models.Position{X: width - offsetX - 1, Y: height - offsetY - 1}, Reached: false},
 	}
 }
 
