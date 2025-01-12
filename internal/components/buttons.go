@@ -3,6 +3,7 @@ package components
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/dasvh/go-learn-vim/internal/style"
 )
 
 // Button represents a component with a label
@@ -32,31 +33,12 @@ func NewButtons(labels ...string) *Buttons {
 		buttons = append(buttons, &Button{Label: label})
 	}
 
-	selectedStyle := lipgloss.NewStyle().
-		Width(30).
-		Height(3).
-		Border(lipgloss.NormalBorder()).
-		Padding(1, 1).
-		Align(lipgloss.Center).
-		BorderForeground(activeBgColor).
-		Background(activeBgColor).
-		Foreground(foregroundColor)
-
-	defaultStyle := lipgloss.NewStyle().
-		Width(30).
-		Height(3).
-		Border(lipgloss.NormalBorder()).
-		Padding(1, 1).
-		Align(lipgloss.Center).
-		BorderForeground(inactiveBgColor).
-		Background(inactiveBgColor)
-
 	return &Buttons{
 		items:  buttons,
-		layout: lipgloss.Center,
+		layout: style.Buttons.Layout,
 		styles: buttonStyles{
-			Selected: selectedStyle,
-			Default:  defaultStyle,
+			Selected: style.Buttons.Selected,
+			Default:  style.Buttons.Default,
 		},
 	}
 }
@@ -87,11 +69,11 @@ func (b *Buttons) View() string {
 		if item.Inactive {
 			continue // skip rendering inactive buttons
 		}
-		style := b.styles.Default
+		s := b.styles.Default
 		if i == b.cursor {
-			style = b.styles.Selected
+			s = b.styles.Selected
 		}
-		views = append(views, style.Render(item.Label))
+		views = append(views, s.Align(b.layout).Render(item.Label))
 	}
 	return lipgloss.JoinVertical(b.layout, views...)
 }
@@ -150,12 +132,6 @@ func (b *Buttons) lastActiveIndex() int {
 	}
 	return 0
 }
-
-var (
-	activeBgColor   = lipgloss.AdaptiveColor{Light: "60", Dark: "120"}
-	inactiveBgColor = lipgloss.AdaptiveColor{Light: "120", Dark: "200"}
-	foregroundColor = lipgloss.CompleteColor{TrueColor: "#00000F"}
-)
 
 // Move represents a directional movement command
 type Move uint8
