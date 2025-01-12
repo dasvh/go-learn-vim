@@ -34,6 +34,11 @@ func NewMainMenu(canLoadGame bool) views.Menu {
 	return &Main{MenuView: base}
 }
 
+// UpdateLoadButton updates the load button based on the canLoadGame flag
+func (m *Main) UpdateLoadButton(canLoadGame bool) {
+	m.UpdateButtonState(ButtonLoad, !canLoadGame)
+}
+
 // Update handles state updates based on incoming messages
 func (m *Main) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	_, cmd := m.MenuView.Update(msg)

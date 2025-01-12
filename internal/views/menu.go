@@ -104,3 +104,8 @@ func (mv *MenuView) View() string {
 func (mv *MenuView) CurrentButton() *components.Button {
 	return mv.buttons.CurrentButton()
 }
+
+// UpdateButtonState updates the state of a button
+func (mv *MenuView) UpdateButtonState(label string, inactive bool) {
+	mv.buttons.UpdateButtonState(label, inactive)
+}

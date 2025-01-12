@@ -109,6 +109,16 @@ func (b *Buttons) CurrentButton() *Button {
 	return b.items[b.cursor]
 }
 
+// UpdateButtonState updates the state of a button
+func (b *Buttons) UpdateButtonState(label string, inactive bool) {
+	for _, button := range b.items {
+		if button.Label == label {
+			button.Inactive = inactive
+			break
+		}
+	}
+}
+
 // MoveUp moves the cursor one position up in the buttons list
 func (b *Buttons) MoveUp() {
 	if b.cursor > 0 {

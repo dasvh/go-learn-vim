@@ -23,6 +23,11 @@ type SetLevelMsg struct {
 	LevelNumber int
 }
 
+// UpdateLoadButtonMsg represents a message to update the load button
+type UpdateLoadButtonMsg struct {
+	CanLoadGame bool
+}
+
 const (
 	// MainMenuScreen represents the main menu screen
 	MainMenuScreen Screen = iota
