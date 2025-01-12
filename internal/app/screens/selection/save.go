@@ -24,7 +24,7 @@ func NewSaveSelection(repo storage.GameRepository, onSaveSelect func(save models
 	ss := views.NewTableView("Load Game Saves")
 
 	ss.SetColumns([]table.Column{
-		{Title: "", Width: 1},
+		{Title: "", Width: 3},
 		{Title: "Player", Width: models.PlayerNameMaxLength},
 		{Title: "Mode", Width: 9},
 		{Title: "Level", Width: 5},

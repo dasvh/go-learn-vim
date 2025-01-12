@@ -2,33 +2,32 @@ package style
 
 import "github.com/charmbracelet/lipgloss"
 
+// colours defines the color palette
 var colours = struct {
 	GoBlue     lipgloss.Color
 	DarkBlue   lipgloss.Color
 	Pink       lipgloss.Color
+	LightPink  lipgloss.Color
+	DarkPink   lipgloss.Color
 	Green      lipgloss.Color
+	LightGreen lipgloss.Color
 	White      lipgloss.Color
 	Grey       lipgloss.Color
-	Red        lipgloss.Color
-	Yellow     lipgloss.Color
-	DarkGrey   lipgloss.Color
-	LightPink  lipgloss.Color
-	LightGreen lipgloss.Color
+	Black      lipgloss.Color
 }{
 	GoBlue:     lipgloss.Color("#00ADD8"),
 	DarkBlue:   lipgloss.Color("#113344"),
 	Pink:       lipgloss.Color("200"),
+	LightPink:  lipgloss.Color("219"),
+	DarkPink:   lipgloss.Color("125"),
 	Green:      lipgloss.Color("120"),
+	LightGreen: lipgloss.Color("157"),
 	White:      lipgloss.Color("15"),
 	Grey:       lipgloss.Color("236"),
-	Red:        lipgloss.Color("196"),
-	Yellow:     lipgloss.Color("226"),
-	DarkGrey:   lipgloss.Color("236"),
-	LightPink:  lipgloss.Color("#FF1BA0"),
-	LightGreen: lipgloss.Color("#A0FF1B"),
+	Black:      lipgloss.Color("16"),
 }
 
-// theme defines the color palette for the views components
+// theme defines the color palette for the application
 var theme = struct {
 	Primary   lipgloss.Color
 	Secondary lipgloss.Color
@@ -36,13 +35,14 @@ var theme = struct {
 	BgLight   lipgloss.Color
 	BgDark    lipgloss.Color
 }{
-	Primary:   lipgloss.Color("#00ADD8"),
-	Secondary: lipgloss.Color("#113344"),
-	Content:   lipgloss.Color("120"),
-	BgLight:   lipgloss.Color("#f0f0f0"),
-	BgDark:    lipgloss.Color("200"),
+	Primary:   colours.GoBlue,
+	Secondary: colours.DarkBlue,
+	Content:   colours.Green,
+	BgLight:   colours.White,
+	BgDark:    colours.Pink,
 }
 
+// adventureTheme defines the color palette for the adventure game
 var adventureTheme = struct {
 	HeaderBg        lipgloss.Color
 	FieldBg         lipgloss.Color
@@ -73,16 +73,18 @@ var adventureTheme = struct {
 	TargetBg:        colours.White,
 	TargetReachedFg: colours.DarkBlue,
 	TargetReachedBg: colours.Pink,
-	WallFg:          colours.LightGreen,
-	WallBg:          colours.LightPink,
+	WallFg:          colours.LightPink,
+	WallBg:          colours.DarkPink,
 }
 
+// Target defines the styling for the target in the adventure game
 type Target struct {
 	Active   lipgloss.Style
 	Inactive lipgloss.Style
 	Reached  lipgloss.Style
 }
 
+// Player defines the styling for the player in the adventure game
 type Player struct {
 	Cursor lipgloss.Style
 	Trail  lipgloss.Style
@@ -91,6 +93,52 @@ type Player struct {
 const itemIndicator = "•"
 const selectedItemIndicator = "▸"
 
+// Buttons defines the styling for buttons in the views components
+var Buttons = struct {
+	Layout   lipgloss.Position
+	Selected lipgloss.Style
+	Default  lipgloss.Style
+}{
+	Layout: lipgloss.Center,
+	Selected: lipgloss.NewStyle().
+		Width(30).
+		Height(3).
+		Border(lipgloss.NormalBorder()).
+		Padding(1, 1).
+		BorderForeground(colours.Pink).
+		Background(colours.Pink).
+		Foreground(colours.White),
+	Default: lipgloss.NewStyle().
+		Width(30).
+		Height(3).
+		Border(lipgloss.NormalBorder()).
+		Padding(1, 1).
+		BorderForeground(colours.Green).
+		Background(colours.Green).
+		Foreground(colours.Black),
+}
+
+// Table defines the styling for tables in the views components
+var Table = struct {
+	Header   lipgloss.Style
+	Cell     lipgloss.Style
+	Selected lipgloss.Style
+}{
+	Header: lipgloss.NewStyle().
+		Foreground(theme.Primary).
+		Background(colours.DarkBlue).
+		Padding(0, 1).
+		MarginBottom(1).
+		Bold(true),
+	Cell: lipgloss.NewStyle().
+		Padding(0, 1),
+	Selected: lipgloss.NewStyle().
+		Foreground(colours.LightGreen).
+		Background(colours.DarkPink).
+		Bold(true),
+}
+
+// PlayerSelection defines the styling for player selection
 var PlayerSelection = struct {
 	Title        lipgloss.Style
 	Item         lipgloss.Style
@@ -125,6 +173,7 @@ var PlayerSelection = struct {
 		Foreground(colours.Grey),
 }
 
+// LevelSelection defines the styling for level selection
 var LevelSelection = struct {
 	Title           lipgloss.Style
 	Item            lipgloss.Style
