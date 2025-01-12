@@ -52,6 +52,7 @@ func (level1 *One) Description() string {
 // Init initializes the level with the given dimensions
 func (level1 *One) Init(width, height int) {
 	level1.restore = false
+	level1.completed = false
 	level1.inProgress = true
 	level1.currentMaze = 0
 	level1.width = width

@@ -46,7 +46,10 @@ func (level0 *Zero) Description() string {
 
 // Init initializes the level with the given dimensions
 func (level0 *Zero) Init(width, height int) {
+	level0.restore = false
+	level0.completed = false
 	level0.inProgress = true
+	level0.currentTarget = 0
 	level0.setDimensions(width, height)
 	level0.resetTargets()
 	level0.initializeGrid()

@@ -55,6 +55,7 @@ func scalePosition(pos models.Position, xScale, yScale float64) models.Position 
 func (a *Adventure) Reset() {
 	a.stats = models.NewStats()
 	a.view.SetStats(0, 0)
+	a.saveID = ""
 	a.lc.ExitLevel()
 }
 
@@ -91,6 +92,7 @@ func (a *Adventure) Save() tea.Cmd {
 	err := a.gc.SaveGame(gameMode, gameState, a.saveID)
 	if err != nil {
 		fmt.Printf("Failed to save game state: %v\n", err)
+		tea.Quit()
 		return nil
 	}
 	a.Reset()
@@ -196,7 +198,6 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, a.controls.Escape):
 			saveCmd := a.Save()
 			return a, tea.Batch(saveCmd, models.ChangeScreen(models.LevelSelectionScreen))
-		case key.Matches(msg, a.controls.Quit):
 		case key.Matches(msg, a.controls.Quit):
 			saveCmd := a.Save()
 			return a, tea.Batch(saveCmd, tea.Quit)
