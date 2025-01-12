@@ -72,17 +72,14 @@ func (tv *TableView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			tv.table.GotoTop()
 		case key.Matches(msg, tv.tableControls.GotoBottom):
 			tv.table.GotoBottom()
-		case key.Matches(msg, tv.tableControls.Select):
+		case key.Matches(msg, tv.tableControls.Select) && tv.onSelect != nil:
 			row := tv.table.SelectedRow()
 			index, err := strconv.Atoi(row[0])
 			if err != nil {
 				fmt.Println("Error converting row to int:", err)
 				return tv, nil
 			}
-			if tv.onSelect != nil {
-				return tv, tv.onSelect(index)
-			}
-			return tv, nil
+			return tv, tv.onSelect(index)
 		case key.Matches(msg, tv.tableControls.Back):
 			return tv, models.ChangeScreen(models.MainMenuScreen)
 		case key.Matches(msg, tv.tableControls.Quit):
