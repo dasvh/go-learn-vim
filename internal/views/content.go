@@ -2,8 +2,11 @@ package views
 
 import (
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/dasvh/go-learn-vim/internal/models"
+	"github.com/dasvh/go-learn-vim/internal/style"
 )
 
 // Content represents an interface that extends the View interface
@@ -17,14 +20,32 @@ type Content interface {
 // the BaseView struct and includes a content field to manage the content
 type ContentView struct {
 	*BaseView
-	content string
+	viewport viewport.Model
+	content  string
 }
 
 // NewContentView returns a new ContentView instance
 func NewContentView(title string) *ContentView {
 	return &ContentView{
 		BaseView: NewBaseView(title),
+		content:  "",
+		viewport: viewport.New(0, 0),
 	}
+}
+
+// RenderSections takes a slice of Section structs and returns a formatted string representation
+func (cv *ContentView) RenderSections(sections []models.Section) string {
+	var rendered string
+	for i, section := range sections {
+		rendered += lipgloss.JoinVertical(0,
+			style.Styles.Display.Title.Render(section.Title),
+			style.Styles.Display.Text.Render(section.Content),
+		)
+		if i < len(sections)-1 {
+			rendered += "\n\n"
+		}
+	}
+	return style.Styles.Display.Section.Render(rendered)
 }
 
 // Init initializes the ContentView
@@ -35,8 +56,16 @@ func (cv *ContentView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		cv.size = msg
+		headerHeight := 10
+		helpHeight := 1
+		cv.viewport.Height = msg.Height - headerHeight - helpHeight
+		cv.viewport.SetContent(cv.content)
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, cv.controls.Up):
+			cv.viewport.LineUp(1)
+		case key.Matches(msg, cv.controls.Down):
+			cv.viewport.LineDown(1)
 		case key.Matches(msg, cv.controls.Quit):
 			return cv, tea.Quit
 		}
@@ -44,12 +73,12 @@ func (cv *ContentView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return cv, nil
 }
 
-// View renders the ContentView
+// View renders the ContentView with a fixed title and a scrollable content area
 func (cv *ContentView) View() string {
 	views := []string{
 		cv.title.Main,
 		cv.title.Subtitle,
-		cv.content,
+		cv.viewport.View(),
 		cv.help.ShortHelpView(cv.controls.ContentHelp()),
 	}
 

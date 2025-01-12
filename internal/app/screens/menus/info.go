@@ -9,7 +9,6 @@ import (
 
 const (
 	ButtonVim        = "Vim"
-	ButtonMotions    = "Motions"
 	ButtonCheatsheet = "Cheatsheet"
 )
 
@@ -22,8 +21,7 @@ type Info struct {
 func NewInfoMenu() views.Menu {
 	info := views.NewBaseMenu("Info Menu", []views.ButtonConfig{
 		{Label: ButtonVim},
-		{Label: ButtonMotions},
-		{Label: ButtonCheatsheet, Inactive: true},
+		{Label: ButtonCheatsheet},
 	})
 	return &Info{MenuView: info}
 }
@@ -55,8 +53,6 @@ func (i *Info) HandleSelection() tea.Cmd {
 	switch selected.Label {
 	case ButtonVim:
 		return models.ChangeScreen(models.VimInfoScreen)
-	case ButtonMotions:
-		return models.ChangeScreen(models.MotionsInfoScreen)
 	case ButtonCheatsheet:
 		return models.ChangeScreen(models.CheatsheetInfoScreen)
 	default:

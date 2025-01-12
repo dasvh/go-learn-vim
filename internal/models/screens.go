@@ -30,8 +30,6 @@ const (
 	InfoMenuScreen
 	// VimInfoScreen represents the vim information screen
 	VimInfoScreen
-	// MotionsInfoScreen represents the motions information screen
-	MotionsInfoScreen
 	// CheatsheetInfoScreen represents the cheatsheet information screen
 	CheatsheetInfoScreen
 	// NewGameScreen represents the new app screen

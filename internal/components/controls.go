@@ -47,6 +47,8 @@ func (c Controls) NavigationHelp() []key.Binding {
 // ContentHelp returns a slice of key bindings for displaying control information
 func (c Controls) ContentHelp() []key.Binding {
 	return []key.Binding{
+		c.Up,
+		c.Down,
 		c.Back,
 		c.Quit,
 	}

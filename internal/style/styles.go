@@ -176,9 +176,10 @@ var Styles = struct {
 	Title    lipgloss.Style
 	Subtitle lipgloss.Style
 	Display  struct {
-		Section lipgloss.Style
-		Title   lipgloss.Style
-		Text    lipgloss.Style
+		Section     lipgloss.Style
+		Title       lipgloss.Style
+		Text        lipgloss.Style
+		SpecialText lipgloss.Style
 	}
 	Adventure struct {
 		Header struct {
@@ -212,9 +213,10 @@ var Styles = struct {
 		Blink(true).
 		Align(lipgloss.Center),
 	Display: struct {
-		Section lipgloss.Style
-		Title   lipgloss.Style
-		Text    lipgloss.Style
+		Section     lipgloss.Style
+		Title       lipgloss.Style
+		Text        lipgloss.Style
+		SpecialText lipgloss.Style
 	}{
 		Section: lipgloss.NewStyle().
 			BorderForeground(theme.Content).
@@ -229,6 +231,11 @@ var Styles = struct {
 		Text: lipgloss.NewStyle().
 			Foreground(theme.Content).
 			Padding(0, 1),
+		SpecialText: lipgloss.NewStyle().
+			Foreground(theme.Primary).
+			Bold(true).
+			MarginTop(1).
+			Align(lipgloss.Center),
 	},
 	Adventure: struct {
 		Header struct {
