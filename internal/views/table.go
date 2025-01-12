@@ -45,6 +45,7 @@ func (tv *TableView) SetColumns(columns []table.Column) {
 	tv.table = table.New(
 		table.WithColumns(columns),
 		table.WithFocused(true),
+		table.WithStyles(style.Table),
 	)
 }
 
