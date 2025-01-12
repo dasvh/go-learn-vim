@@ -3,7 +3,6 @@ package level
 import (
 	"fmt"
 	"github.com/dasvh/go-learn-vim/internal/models"
-	"time"
 )
 
 const (
@@ -22,13 +21,11 @@ type One struct {
 	completed      bool
 	restore        bool
 	inProgress     bool
-	movementBlock  bool
 	grid           [][]rune
 	chars          *models.Characters
 	player         models.Position
 	targets        []models.Target
 	targetBehavior []*MazeTargets
-	blockEnds      time.Time
 }
 
 // NewLevelOne returns a new instance of models.Level one
@@ -214,6 +211,11 @@ func (level1 *One) Restore(state models.SavedLevel) error {
 	level1.resetTargets()
 	level1.initializeGrid()
 	return nil
+}
+
+// Exit exits the level
+func (level1 *One) Exit() {
+	level1.inProgress = false
 }
 
 // setupMazesAndTargets sets up the mazes and target behaviors for the level

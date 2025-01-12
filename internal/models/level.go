@@ -16,6 +16,7 @@ type Level interface {
 	InProgress() bool
 	IsCompleted() bool
 	Restore(state SavedLevel) error
+	Exit()
 }
 
 // SavedLevel represents a saved level

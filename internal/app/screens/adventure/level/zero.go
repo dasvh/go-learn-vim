@@ -195,6 +195,12 @@ func (level0 *Zero) Restore(state models.SavedLevel) error {
 	return nil
 }
 
+// Exit exits the level
+func (level0 *Zero) Exit() {
+	level0.inProgress = false
+}
+
+// initializeGrid initializes the grid
 func (level0 *Zero) initializeGrid() {
 	level0.clearGrid()
 	level0.PlacePlayer(level0.GetStartPosition())

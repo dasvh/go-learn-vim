@@ -67,6 +67,11 @@ func (lc *Level) RestoreLevel(state models.SavedLevel) error {
 	return lc.current.Restore(state)
 }
 
+// ExitLevel exits the current level
+func (lc *Level) ExitLevel() {
+	lc.current.Exit()
+}
+
 // InitOrResizeLevel initializes or resizes the current level with the given width and height
 func (lc *Level) InitOrResizeLevel(width, height int) error {
 	if lc.current == nil {
