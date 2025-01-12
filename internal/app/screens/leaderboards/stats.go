@@ -101,13 +101,15 @@ func (sv *StatsScreen) populateTable() {
 		},
 	}
 	for player, stats := range sv.playerStats {
-		rows = append(rows, table.Row{
-			player,
-			strconv.Itoa(stats.TotalGames),
-			strconv.Itoa(stats.TotalKeystrokes),
-			strconv.Itoa(stats.TotalPlaytime),
-			formatKeyPresses(stats.KeyPresses),
-		})
+		if stats.TotalGames > 0 {
+			rows = append(rows, table.Row{
+				player,
+				strconv.Itoa(stats.TotalGames),
+				strconv.Itoa(stats.TotalKeystrokes),
+				strconv.Itoa(stats.TotalPlaytime),
+				formatKeyPresses(stats.KeyPresses),
+			})
+		}
 	}
 
 	sv.view.SetRows(rows)

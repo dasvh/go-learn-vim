@@ -79,7 +79,7 @@ func (ss *ScoresScreen) populateTable() {
 	rows := make([]table.Row, 0)
 
 	if len(ss.highScores) == 0 {
-		rows = append(rows, table.Row{"", "No scores yet", ""})
+		rows = append(rows, table.Row{"", "No scores yet", "", "", ""})
 	} else {
 		for place, hs := range ss.highScores {
 			rows = append(rows, table.Row{

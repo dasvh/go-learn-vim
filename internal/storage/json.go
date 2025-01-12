@@ -130,7 +130,7 @@ func (repo *JSONRepository) LoadGameState(gameID string) (models.GameState, erro
 func (repo *JSONRepository) LifetimeStats() (*models.LifetimeStats, error) {
 	lifetimeStats := models.NewLifetimeStats()
 
-	uniqueGames := make(map[string]struct{}) // Track unique game IDs
+	uniqueGames := make(map[string]struct{})
 
 	for _, save := range repo.data.Saves {
 		if adventureState, ok := save.GameState.(models.AdventureGameState); ok {
