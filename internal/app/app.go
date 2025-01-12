@@ -38,7 +38,7 @@ func NewApp(repo storage.GameRepository) *App {
 	screen.Register(models.MainMenuScreen, menus.NewMainMenu(repo.HasIncompleteGames()))
 	screen.Register(models.InfoMenuScreen, menus.NewInfoMenu())
 	screen.Register(models.VimInfoScreen, info.NewVimInfo())
-	screen.Register(models.MotionsInfoScreen, info.NewMotionsInfo())
+	screen.Register(models.CheatsheetInfoScreen, info.NewVimCheatsheet())
 	screen.Register(models.LoadSaveSelectionScreen, selection.NewSaveSelection(repo, app.handleSaveSelection))
 	screen.Register(models.NewGameScreen, menus.NewGameModes())
 	screen.Register(models.PlayerSelectionScreen, selection.NewPlayerSelection(game, models.NewGameScreen))
@@ -104,6 +104,12 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case models.SetLevelMsg:
 		if model, ok := a.sc.Screens()[models.AdventureModeScreen].(*adventure.Adventure); ok {
 			model.Update(msg)
+		}
+		return a, nil
+	// update the load button in the main menu screen
+	case models.UpdateLoadButtonMsg:
+		if model, ok := a.sc.Screens()[models.MainMenuScreen].(*menus.Main); ok {
+			model.UpdateLoadButton(msg.CanLoadGame)
 		}
 		return a, nil
 	// handle screen transitions with model registration

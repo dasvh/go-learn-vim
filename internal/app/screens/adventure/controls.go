@@ -15,6 +15,7 @@ type Controls struct {
 	EndOfLine   key.Binding
 	FirstLine   key.Binding
 	LastLine    key.Binding
+	Escape      key.Binding
 	Quit        key.Binding
 }
 
@@ -33,6 +34,9 @@ func NewBasicControls() Controls {
 		MoveDown: key.NewBinding(
 			key.WithKeys("j"),
 			key.WithHelp("j", "move down")),
+		Escape: key.NewBinding(
+			key.WithKeys("esc"),
+			key.WithHelp("esc", "back to selection")),
 		Quit: key.NewBinding(
 			key.WithKeys("q", "ctrl+c"),
 			key.WithHelp("q", "quit")),
@@ -46,6 +50,7 @@ func (c Controls) BasicHelp() []key.Binding {
 		c.MoveDown,
 		c.MoveUp,
 		c.MoveRight,
+		c.Escape,
 		c.Quit,
 	}
 }

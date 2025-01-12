@@ -51,6 +51,14 @@ func scalePosition(pos models.Position, xScale, yScale float64) models.Position 
 	}
 }
 
+// Reset the adventure mode by resetting the stats and exiting the current level
+func (a *Adventure) Reset() {
+	a.stats = models.NewStats()
+	a.view.SetStats(0, 0)
+	a.lc.ExitLevel()
+}
+
+// initializeLevel initializes the current level
 func (a *Adventure) initializeLevel() {
 	err := a.lc.InitOrResizeLevel(a.gridWidth, a.gridHeight)
 	if err != nil {
@@ -61,8 +69,9 @@ func (a *Adventure) initializeLevel() {
 	a.view.Info.SetText(a.lc.GetCurrentLevel().GetInstructions())
 }
 
-// Save saves the app models.AdventureGameState with models.Stats
-func (a *Adventure) Save() error {
+// Save saves the models.AdventureGameState with models.SavedLevel and models.Stats
+// and sends models.UpdateLoadButtonMsg to update the load button in the main menu
+func (a *Adventure) Save() tea.Cmd {
 	gameState := models.AdventureGameState{
 		WindowSize: a.view.Size,
 		Level: models.SavedLevel{
@@ -78,7 +87,16 @@ func (a *Adventure) Save() error {
 		Stats:  *a.stats,
 		SaveID: a.saveID,
 	}
-	return a.gc.SaveGame(gameMode, gameState, a.saveID)
+
+	err := a.gc.SaveGame(gameMode, gameState, a.saveID)
+	if err != nil {
+		fmt.Printf("Failed to save game state: %v\n", err)
+		return nil
+	}
+	a.Reset()
+	return func() tea.Msg {
+		return models.UpdateLoadButtonMsg{CanLoadGame: true}
+	}
 }
 
 // Load creates a new Adventure instance from a saved models.GameState
@@ -175,13 +193,13 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, a.controls.MoveDown):
 			isMotionKey = true
 			delta = models.Position{X: 0, Y: 1}
+		case key.Matches(msg, a.controls.Escape):
+			saveCmd := a.Save()
+			return a, tea.Batch(saveCmd, models.ChangeScreen(models.LevelSelectionScreen))
 		case key.Matches(msg, a.controls.Quit):
-			// save the app controllers before quitting
-			err := a.Save()
-			if err != nil {
-				fmt.Println("Failed to save app controllers:", err)
-			}
-			return a, tea.Quit
+		case key.Matches(msg, a.controls.Quit):
+			saveCmd := a.Save()
+			return a, tea.Batch(saveCmd, tea.Quit)
 		}
 
 		// update player action
@@ -192,13 +210,8 @@ func (a *Adventure) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.view.SetInfo(result.InstructionMessage)
 		}
 		if result.Completed {
-			// save the app controllers after completing the level
-			err := a.Save()
-			if err != nil {
-				fmt.Println("Failed to save app controllers:", err)
-			}
-
-			return a, tea.Quit
+			saveCmd := a.Save()
+			return a, tea.Batch(saveCmd, models.ChangeScreen(models.MainMenuScreen))
 		}
 
 		// only register keystrokes if it's a motion key and the move is valid
