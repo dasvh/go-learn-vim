@@ -12,7 +12,7 @@ func Test_NewLevel(t *testing.T) {
 	}{
 		{
 			name:       "Initialize Level controller",
-			wantLevels: []int{0, 1}, // Expected level numbers
+			wantLevels: []int{0, 1},
 		},
 	}
 
