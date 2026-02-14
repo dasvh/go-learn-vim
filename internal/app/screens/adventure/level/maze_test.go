@@ -112,7 +112,7 @@ func findPath(start, end models.Position, walls map[models.Position]bool,
 			return path
 		}
 
-		dirs := []models.Position{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}
+		dirs := []models.Position{{X: -1, Y: 0}, {X: 1, Y: 0}, {X: 0, Y: -1}, {X: 0, Y: 1}}
 		for _, dir := range dirs {
 			next := models.Position{X: current.X + dir.X, Y: current.Y + dir.Y}
 
