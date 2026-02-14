@@ -65,9 +65,9 @@ func (cv *ContentView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, cv.controls.Up):
-			cv.viewport.LineUp(1)
+			cv.viewport.ScrollUp(1)
 		case key.Matches(msg, cv.controls.Down):
-			cv.viewport.LineDown(1)
+			cv.viewport.ScrollDown(1)
 		case key.Matches(msg, cv.controls.Quit):
 			return cv, tea.Quit
 		}

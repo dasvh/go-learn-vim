@@ -119,7 +119,7 @@ func (av *AdventureView) SetStats(keystrokes int, time int) {
 
 // SetInfo sets the info text
 func (av *AdventureView) SetInfo(info string) {
-	av.Info.SetText(info)
+	av.Info.SetText("%s", info)
 }
 
 // renderGameMap renders the game map

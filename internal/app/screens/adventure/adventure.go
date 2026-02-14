@@ -2,12 +2,13 @@ package adventure
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/dasvh/go-learn-vim/internal/app/controllers"
 	"github.com/dasvh/go-learn-vim/internal/models"
 	"github.com/dasvh/go-learn-vim/internal/views"
-	"time"
 )
 
 // TODO: there is a bug with the player position when the window is resized before starting a game
@@ -66,8 +67,8 @@ func (a *Adventure) initializeLevel() {
 		fmt.Println("Failed to initialize level:", err)
 		return
 	}
-	a.view.Level.SetText(fmt.Sprintf("Level: %d", a.lc.GetLevelNumber()))
-	a.view.Info.SetText(a.lc.GetCurrentLevel().GetInstructions())
+	a.view.Level.SetText("%s", fmt.Sprintf("Level: %d", a.lc.GetLevelNumber()))
+	a.view.Info.SetText("%s", a.lc.GetCurrentLevel().GetInstructions())
 }
 
 // Save saves the models.AdventureGameState with models.SavedLevel and models.Stats
@@ -92,8 +93,7 @@ func (a *Adventure) Save() tea.Cmd {
 	err := a.gc.SaveGame(gameMode, gameState, a.saveID)
 	if err != nil {
 		fmt.Printf("Failed to save game state: %v\n", err)
-		tea.Quit()
-		return nil
+		return tea.Quit
 	}
 	a.Reset()
 	return func() tea.Msg {
