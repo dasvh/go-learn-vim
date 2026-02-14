@@ -65,8 +65,8 @@ func (m *Maze) generateMazeDFS(pathWidth int) {
 
 func (m *Maze) dfs(cell models.Position, visited [][]bool, pathWidth int) {
 	// mark the visited cells
-	for dy := 0; dy < pathWidth; dy++ {
-		for dx := 0; dx < pathWidth; dx++ {
+	for dy := range pathWidth {
+		for dx := range pathWidth {
 			nx, ny := cell.X+dx, cell.Y+dy
 			if ny < m.height && nx < m.width {
 				visited[ny][nx] = true
@@ -110,8 +110,8 @@ func (m *Maze) removeWall(x, y int) {
 
 // isVisited checks if the entire "pathWidth x pathWidth" area is visited
 func isVisited(cell models.Position, visited [][]bool, pathWidth int) bool {
-	for dy := 0; dy < pathWidth; dy++ {
-		for dx := 0; dx < pathWidth; dx++ {
+	for dy := range pathWidth {
+		for dx := range pathWidth {
 			nx, ny := cell.X+dx, cell.Y+dy
 			if ny >= len(visited) || nx >= len(visited[0]) || !visited[ny][nx] {
 				return false
@@ -128,8 +128,8 @@ func removeCorridorWalls(m *Maze, current, next models.Position, pathWidth int) 
 	midY := (current.Y + next.Y) / 2
 
 	// Remove walls in the corridor
-	for dy := 0; dy < pathWidth; dy++ {
-		for dx := 0; dx < pathWidth; dx++ {
+	for dy := range pathWidth {
+		for dx := range pathWidth {
 			m.removeWall(midX+dx, midY+dy)
 		}
 	}

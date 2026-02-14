@@ -68,7 +68,7 @@ func (gs *GameSave) UnmarshalJSON(data []byte) error {
 func (gs *GameSave) MarshalJSON() ([]byte, error) {
 	type Alias GameSave
 	aux := &struct {
-		GameState interface{} `json:"game_state"`
+		GameState any `json:"game_state"`
 		*Alias
 	}{
 		Alias:     (*Alias)(gs),

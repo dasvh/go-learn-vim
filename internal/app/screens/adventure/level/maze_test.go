@@ -146,8 +146,8 @@ func findAccessiblePosition(maze *Maze) models.Position {
 }
 
 func hasPathWidthSpace(pos models.Position, pathWidth int, walls map[models.Position]bool) bool {
-	for dy := 0; dy < pathWidth; dy++ {
-		for dx := 0; dx < pathWidth; dx++ {
+	for dy := range pathWidth {
+		for dx := range pathWidth {
 			checkPos := models.Position{X: pos.X + dx, Y: pos.Y + dy}
 			if walls[checkPos] {
 				return false

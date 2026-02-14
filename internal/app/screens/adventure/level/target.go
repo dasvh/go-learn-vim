@@ -1,6 +1,8 @@
 package level
 
 import (
+	"slices"
+
 	"github.com/dasvh/go-learn-vim/internal/models"
 )
 
@@ -107,10 +109,5 @@ func (mt *MazeTargets) UpdateGrid(grid [][]rune, targets []models.Target, curren
 
 // Helper function to check if a position collides with walls
 func (mt *MazeTargets) isPositionCollidingWithWall(pos models.Position) bool {
-	for _, wall := range mt.maze.GetWalls() {
-		if wall == pos {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(mt.maze.GetWalls(), pos)
 }

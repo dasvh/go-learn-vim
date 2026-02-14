@@ -12,7 +12,7 @@ type TextDisplay struct {
 }
 
 // SetText sets the display text for the component
-func (dc *TextDisplay) SetText(format string, args ...interface{}) {
+func (dc *TextDisplay) SetText(format string, args ...any) {
 	dc.Text = fmt.Sprintf(format, args...)
 }
 
