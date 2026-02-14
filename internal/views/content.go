@@ -1,6 +1,8 @@
 package views
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -35,17 +37,17 @@ func NewContentView(title string) *ContentView {
 
 // RenderSections takes a slice of Section structs and returns a formatted string representation
 func (cv *ContentView) RenderSections(sections []models.Section) string {
-	var rendered string
+	var rendered strings.Builder
 	for i, section := range sections {
-		rendered += lipgloss.JoinVertical(0,
+		rendered.WriteString(lipgloss.JoinVertical(0,
 			style.Styles.Display.Title.Render(section.Title),
 			style.Styles.Display.Text.Render(section.Content),
-		)
+		))
 		if i < len(sections)-1 {
-			rendered += "\n\n"
+			rendered.WriteString("\n\n")
 		}
 	}
-	return style.Styles.Display.Section.Render(rendered)
+	return style.Styles.Display.Section.Render(rendered.String())
 }
 
 // Init initializes the ContentView

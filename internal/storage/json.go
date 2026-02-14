@@ -178,10 +178,7 @@ func (repo *JSONRepository) ComputeHighScores() ([]models.HighScore, error) {
 			if gameStats.TimeElapsed > 0 && gameStats.TotalKeystrokes > 0 {
 				timePenalty := gameStats.TimeElapsed * TimeWeight
 				keystrokePenalty := gameStats.TotalKeystrokes * KeystrokeWeight
-				score := BaseScore - timePenalty - keystrokePenalty
-				if score < MinScore {
-					score = MinScore
-				}
+				score := max(BaseScore-timePenalty-keystrokePenalty, MinScore)
 				highScores = append(highScores, models.HighScore{
 					PlayerName: save.Player.Name,
 					Level:      save.GameState.(models.AdventureGameState).Level.Number,

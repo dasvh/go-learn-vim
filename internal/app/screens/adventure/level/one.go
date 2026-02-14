@@ -3,6 +3,7 @@ package level
 import (
 	"fmt"
 	"github.com/dasvh/go-learn-vim/internal/models"
+	"slices"
 )
 
 const (
@@ -75,14 +76,12 @@ func (level1 *One) PlayerMove(delta models.Position) models.PlayerMovement {
 	}
 
 	// check if the player collides with a wall
-	for _, wall := range level1.targetBehavior[level1.currentMaze].maze.GetWalls() {
-		if wall == newPos {
-			return models.PlayerMovement{
-				UpdatedPosition:    level1.player,
-				Completed:          false,
-				ValidMove:          false,
-				InstructionMessage: level1.GetInstructions(),
-			}
+	if slices.Contains(level1.targetBehavior[level1.currentMaze].maze.GetWalls(), newPos) {
+		return models.PlayerMovement{
+			UpdatedPosition:    level1.player,
+			Completed:          false,
+			ValidMove:          false,
+			InstructionMessage: level1.GetInstructions(),
 		}
 	}
 
