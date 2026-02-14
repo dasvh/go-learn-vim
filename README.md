@@ -29,7 +29,7 @@ The application is written in Go and uses the following libraries:
 
 ### Prerequisites
 
-- Go 1.23.4
+- Go 1.26.0
 
 ### Setup
 
@@ -37,7 +37,7 @@ The application is written in Go and uses the following libraries:
 
 ```sh
 # clone the repository
-git clone github.com/dasvh/go-learn-vim
+git clone https://github.com/dasvh/go-learn-vim.git
 cd go-learn-vim
 
 # builds the application and saves the binary in the /tmp/bin directory
@@ -79,6 +79,7 @@ make help      # shows available commands
 make build     # build the application
 make run       # run the application
 make test      # run tests
+make test/cover # run tests and open an HTML coverage report
 make audit     # run quality control checks
 make tidy      # format code and tidy dependencies
 ```
